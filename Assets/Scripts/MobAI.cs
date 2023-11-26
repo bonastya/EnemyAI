@@ -14,8 +14,10 @@ public class MobAI : MonoBehaviour
     [Header("Слои для определения видимости (что преграждает)")]
     public LayerMask layer_mask;
 
-    [Header("Слой вижена моба")]
-    public LayerMask mob_vision_mask;
+    [Header("Слой вижена игрока")]
+    public LayerMask player_vision_mask;
+    [Header("Слой препятствий")]
+    public LayerMask obstacles_mask;
 
     [Header("Метка где последний раз видел игрока")]
     public Transform player_last_point_trig;
@@ -23,11 +25,12 @@ public class MobAI : MonoBehaviour
     [Header("Метка куда идёт")]
     public Transform target_point_vis;
 
+    [HideInInspector] public GameController gameController;
     [HideInInspector] public GameObject player;
     [HideInInspector] public bool playerOnVisionTrig;
 
     [HideInInspector] public MovementMode movement_mode; //0 - не видит, 1 - идёт к последней точке, 2 - видит и идёт к игроку
-    
+
     [HideInInspector] public Transform target;
 
     Transform player_camera;
@@ -35,26 +38,31 @@ public class MobAI : MonoBehaviour
     NavMeshAgent agent;
     Animator mob_animator;
 
-    [HideInInspector] public WaypointTrig currentWaypointtrig ;
+    [HideInInspector] public WaypointTrig currentWaypointtrig;
+
+    bool isInPlayerVision = false;
+
+    GameController.GamePlayMode mobPlayMode;
 
 
 
+    Collider[] obstaclesColliders = new Collider[10];
 
+    [Header("Сфера в которой нужно искать укрытия")]
+    public SphereCollider obstacleSearchRadius;
 
-    bool isVisionPlayerCollision = false;
-
-
-
-
+    [Header("Точка найденного укрытия")]
+    public Transform safePoint;
 
     public enum MovementMode
     {
         GoToPlayer,
         CheckWayPoints,
-        GoToLastPoint
+        GoToLastPoint,
+        HideFromPlayer,
+        WaitInCover
     }
 
-    
 
     void Start()
     {
@@ -65,18 +73,65 @@ public class MobAI : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
         currentWaypointtrig = all_wps[1].gameObject.GetComponent<WaypointTrig>();
 
-        GoToNextWP();
+        gameController = FindObjectOfType<GameController>();
+
+
+        if (gameController.playMode == GameController.GamePlayMode.PlayerHide)
+        {
+            GoToNextWP();
+        }
+        else if (gameController.playMode == GameController.GamePlayMode.PlayerSeek)
+        {
+            HideFromPlayer();
+        }
+
         StartCoroutine("SetDestinationCor");
 
 
     }
 
+
+
+
+
     private void Update()
     {
+        //проверить что моб находится в зоне видимости игрока
+
+        if (mobPlayMode == GameController.GamePlayMode.PlayerSeek)
+        {
+            CheckIfInVisionOfPlayer();
+        }
+
         
+    }
+
+
+    public void ChangePlayMode(GameController.GamePlayMode playMode)
+    {
+        if (playMode == GameController.GamePlayMode.PlayerHide)
+        {
+            mobPlayMode = playMode;
+
+
+
+
+        }
+        else if (playMode == GameController.GamePlayMode.PlayerSeek)
+        {
+            mobPlayMode = playMode;
+            StopCoroutine("RayOnPlayerCor");
+
+        }
+    }
+
+/*    private void CheckIfPlayerInVision()
+    {
         Collider[] hitColliders = Physics.OverlapSphere(player_camera.transform.position, 0f, mob_vision_mask);
         if (hitColliders.Length > 0)
         {
+            
+            //проверка что игрок не был в триггере до этого
             if (!isVisionPlayerCollision)
             {
                 isVisionPlayerCollision = true;
@@ -84,24 +139,46 @@ public class MobAI : MonoBehaviour
                 StartCoroutine("RayOnPlayerCor");
                 playerOnVisionTrig = true;
             }
-            
-            
+
         }
         else
         {
             if (isVisionPlayerCollision)
             {
                 isVisionPlayerCollision = false;
-                Debug.Log("Not colliding" );
+                Debug.Log("Not colliding");
                 StopCoroutine("RayOnPlayerCor");
                 playerOnVisionTrig = false;
             }
         }
+    }*/
 
 
+    private void CheckIfInVisionOfPlayer()
+    {
+        Collider[] hitColliders = Physics.OverlapSphere(vision_point.position, 0f, player_vision_mask);
+        if (hitColliders.Length > 0)
+        {
+            //проверка что моб не был в триггере до этого
+            if (!isInPlayerVision)
+            {
+                isInPlayerVision = true;
+                Debug.Log("Colliding with: " + hitColliders[0]);
+                StartCoroutine("IsHideFromPlayerRayCor");
+                
+            }
 
-
-
+        }
+        else
+        {
+            if (isInPlayerVision)
+            {
+                isInPlayerVision = false;
+                Debug.Log("Not colliding");
+                StopCoroutine("IsHideFromPlayerRayCor");
+                
+            }
+        }
     }
 
     IEnumerator SetDestinationCor()
@@ -128,23 +205,46 @@ public class MobAI : MonoBehaviour
 
                 if (!Physics.Linecast(vision_point.position, player_camera.position, out str, layer_mask))
                 {
-                    print("ни с чем не столкнулся");
+                    //print("ни с чем не столкнулся");
                     if (movement_mode != MovementMode.GoToPlayer)
                         SeesPlayer();
-
                 }
                 else if (movement_mode == MovementMode.GoToPlayer)
                 {
-                    //print("cneryekcz j " + str.collider.gameObject.name.ToString());
                     GoToPlayerLastPoint();
                 }
             }
-            
 
-            //else print("cneryekcz j " + str.collider.gameObject.name.ToString());
+
         }
     }
 
+    IEnumerator IsHideFromPlayerRayCor()
+    {
+        RaycastHit str;
+
+        while (true)
+        {
+            yield return new WaitForSeconds(0.1f);
+
+            Debug.DrawLine(vision_point.position, player_camera.position, Color.green);
+
+            if (!Physics.Linecast(vision_point.position, player_camera.position, out str, layer_mask))
+            {
+                //print("ни с чем не столкнулся");
+                if (movement_mode != MovementMode.HideFromPlayer)
+                    HideFromPlayer();
+
+            }
+            else
+            {
+                if (movement_mode != MovementMode.WaitInCover)
+                    WaitInCover();
+            }
+           
+
+        }
+    }
 
 
     public void SeesPlayer()
@@ -168,24 +268,21 @@ public class MobAI : MonoBehaviour
 
     }
 
+    //запускается при достижении WayPoint
     public void StartGoToNextWPCor(float delay)
     {
         StartCoroutine(GoToNextWPCor(delay));
+    }
 
-    }    
-    
-    IEnumerator GoToNextWPCor( float delay)
+    IEnumerator GoToNextWPCor(float delay)
     {
         yield return new WaitForSeconds(delay);
         GoToNextWP();
     }
     public void GoToNextWP()
     {
-        if(!currentWaypointtrig.transform)
-        {
 
-        }
-        Transform newWP= currentWaypointtrig.transform;
+        Transform newWP = currentWaypointtrig.transform;
 
         while (newWP == currentWaypointtrig.transform)
             newWP = all_wps[Random.Range(0, all_wps.Length)].transform;
@@ -199,6 +296,95 @@ public class MobAI : MonoBehaviour
 
     }
 
+
+
+    //если этот режим то
+    //проверять видит ли меня игрок постоянно
+    //если видит то выбирать ближайшую точку и идти туда
+    //иначе соять
+
+    //выбрать ближайшую точку
+    //
+
+
+
+    public void HideFromPlayer()
+    {
+
+
+        int colliders = Physics.OverlapSphereNonAlloc(vision_point.position, obstacleSearchRadius.radius, obstaclesColliders, obstacles_mask);
+
+        for(int i=0; i< colliders; i++)
+        {
+            
+            //расчёт направления
+            Vector3 direction = obstaclesColliders[i].gameObject.transform.position - player_camera.position;
+            RaycastHit[] hits;
+
+            hits = Physics.RaycastAll(player_camera.position, direction, Mathf.Infinity);
+
+            if (hits.Length>0)
+            {
+                Debug.DrawRay(player_camera.position, direction * 1000, Color.yellow);
+
+                
+                foreach (RaycastHit hit in hits)
+                {
+                    print("столкновение с hit.transform.gameObject " + hit.transform.gameObject);
+
+                    if (hit.transform.gameObject == obstaclesColliders[i].gameObject)
+                    {
+                        NavMeshHit navPoint;
+                        if(NavMesh.SamplePosition(player_camera.position, out navPoint, 2f, agent.areaMask))
+                        {
+                            if (Physics.Linecast(player_camera.position, new Vector3(navPoint.position.x, player_camera.position.y, navPoint.position.z), layer_mask))
+                            {
+
+                                safePoint.position = navPoint.position; 
+                                target = safePoint;
+                                movement_mode = MovementMode.HideFromPlayer;
+                                Move();
+                                print("Моб идёт к укрытию");
+                                return;
+                            }
+                        }
+
+                        
+
+
+                    }
+                }
+
+                
+
+
+            }
+            else
+            {
+                Debug.DrawRay(player_camera.position, direction * 1000, Color.white);
+                Debug.Log("Did not Hit");
+            }
+
+
+
+
+        }
+
+
+
+        
+
+    }
+
+    public void WaitInCover()
+    {
+        movement_mode = MovementMode.WaitInCover;
+        agent.isStopped = true;
+        mob_animator.SetBool("isWalk", false);
+
+    }
+
+
     public void Stop(string animName)
     {
         movement_mode = MovementMode.CheckWayPoints;
@@ -207,7 +393,7 @@ public class MobAI : MonoBehaviour
         mob_animator.SetTrigger(animName);
 
     }
-    
+
     public void Move()
     {
         if (!mob_animator.GetCurrentAnimatorStateInfo(0).IsName("walk"))
@@ -220,3 +406,4 @@ public class MobAI : MonoBehaviour
     }
 
 }
+

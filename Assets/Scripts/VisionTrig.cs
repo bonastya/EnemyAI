@@ -4,13 +4,12 @@ using UnityEngine;
 
 public class VisionTrig : MonoBehaviour
 {
-    MobAI mob;
-    int num = 0;
-    bool isColliding =false;
+    public MobAI mob;
 
     private void Start()
     {
-        mob = transform.root.gameObject.GetComponent<MobAI>();
+        //mob = transform.root.gameObject.GetComponent<MobAI>();
+        
 
     }
 

@@ -19,7 +19,7 @@ TagManager:
   - PlayerCollision
   - Environment
   - MobVision
-  - 
+  - PlayerVision
   - 
   - 
   - 

@@ -14,32 +14,4 @@ public class VisionTrig : MonoBehaviour
 
     }
 
-
-
-/*private void OnTriggerEnter(Collider other)
-    {
-        if (isColliding) return;
-        else
-            isColliding = true;
-        num++;
-        print("Игрок попал в триггер видимости " + num);
-        mob.StartCoroutine("RayOnPlayerCor");
-        mob.playerOnVisionTrig = true;
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        if (!isColliding) return;
-        else
-            isColliding = false;
-        num--;
-        print("Игрок вышел из триггера видимости " + num);
-        mob.StopCoroutine("RayOnPlayerCor");
-        mob.playerOnVisionTrig = false;
-        if (mob.movement_mode == MobAI.MovementMode.GoToPlayer)
-            mob.GoToPlayerLastPoint();
-    }*/
-
-
-
 }

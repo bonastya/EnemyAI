@@ -23,7 +23,6 @@ public class MobAI : MonoBehaviour
     [Header("Метка куда идёт")]
     public Transform target_point_vis;
 
-    [HideInInspector] public GameController gameController;
     [HideInInspector] public GameObject player;
     [HideInInspector] public bool playerOnVisionTrig;
 
@@ -38,17 +37,24 @@ public class MobAI : MonoBehaviour
 
     [HideInInspector] public WaypointTrig currentWaypointtrig ;
 
+
+
+
+
     bool isVisionPlayerCollision = false;
+
+
+
 
 
     public enum MovementMode
     {
         GoToPlayer,
         CheckWayPoints,
-        GoToLastPoint,
-        HideFromPlayer
+        GoToLastPoint
     }
 
+    
 
     void Start()
     {
@@ -59,18 +65,7 @@ public class MobAI : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
         currentWaypointtrig = all_wps[1].gameObject.GetComponent<WaypointTrig>();
 
-        gameController = FindObjectOfType<GameController>();
-     
-
-        if(gameController.playMode == GameController.PlayMode.PlayerHide)
-        {
-            GoToNextWP();
-        }
-        else if (gameController.playMode == GameController.PlayMode.PlayerSeek)
-        {
-            HideFromPlayer();
-        }
-
+        GoToNextWP();
         StartCoroutine("SetDestinationCor");
 
 
@@ -78,25 +73,10 @@ public class MobAI : MonoBehaviour
 
     private void Update()
     {
-        if (gameController.playMode == GameController.PlayMode.PlayerHide)
-        {
-            CheckIfPlayerInVision();
-        }
-        else if (gameController.playMode == GameController.PlayMode.PlayerSeek)
-        {
-            HideFromPlayer();
-        }
-
-
-    }
-
-
-    private void CheckIfPlayerInVision()
-    {
+        
         Collider[] hitColliders = Physics.OverlapSphere(player_camera.transform.position, 0f, mob_vision_mask);
         if (hitColliders.Length > 0)
         {
-            //проверка что игрок не был в триггере до этого
             if (!isVisionPlayerCollision)
             {
                 isVisionPlayerCollision = true;
@@ -104,20 +84,25 @@ public class MobAI : MonoBehaviour
                 StartCoroutine("RayOnPlayerCor");
                 playerOnVisionTrig = true;
             }
-
+            
+            
         }
         else
         {
             if (isVisionPlayerCollision)
             {
                 isVisionPlayerCollision = false;
-                Debug.Log("Not colliding");
+                Debug.Log("Not colliding" );
                 StopCoroutine("RayOnPlayerCor");
                 playerOnVisionTrig = false;
             }
         }
-    }
 
+
+
+
+
+    }
 
     IEnumerator SetDestinationCor()
     {
@@ -196,7 +181,10 @@ public class MobAI : MonoBehaviour
     }
     public void GoToNextWP()
     {
-        
+        if(!currentWaypointtrig.transform)
+        {
+
+        }
         Transform newWP= currentWaypointtrig.transform;
 
         while (newWP == currentWaypointtrig.transform)
@@ -210,46 +198,6 @@ public class MobAI : MonoBehaviour
         print("Следующая точка");
 
     }
-
-
-
-    //если этот режим то
-    //проверять видит ли меня игрок постоянно
-    //если видит то выбирать ближайшую точку и идти туда
-    //иначе соять
-
-    //выбрать ближайшую точку
-    //
-
-
-
-    public void HideFromPlayer()
-    {
-
-        Transform safePoint;
-
-
-
-
-        safePoint=
-
-
-
-
-
-
-
-
-        target = safePoint;
-        movement_mode = MovementMode.HideFromPlayer;
-        Move();
-        print("Моб идёт к укрытию");
-
-
-    }
-
-
-
 
     public void Stop(string animName)
     {

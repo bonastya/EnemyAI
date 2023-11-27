@@ -14,7 +14,7 @@ public class PlayerMovement : MonoBehaviour
     }
     void Update()
     {
-        
+        print("я рожден ходить");
         CharacterController controller = GetComponent<CharacterController>();
 
         Vector3 forward = transform.TransformDirection(Vector3.forward);
@@ -24,6 +24,8 @@ public class PlayerMovement : MonoBehaviour
         float curSpeedHor = speed * Input.GetAxis("Horizontal");
         controller.SimpleMove(forward * curSpeed+ right * curSpeedHor);
 
+        print("Input.GetAxis(Vertical)"+ Input.GetAxis("Vertical"));
+        print("Input.GetAxis(Horizontal)" + Input.GetAxis("Horizontal"));
 
 
     }

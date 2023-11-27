@@ -67,6 +67,7 @@ public class MobAI : MonoBehaviour
     void Start()
     {
         my_transform = transform;
+        target = transform;
         player = GameObject.FindWithTag("Player");
         player_camera = GameObject.FindWithTag("MainCamera").transform;
         mob_animator = GetComponent<Animator>();
@@ -236,11 +237,11 @@ public class MobAI : MonoBehaviour
                     HideFromPlayer();
 
             }
-            else
+            /*else
             {
                 if (movement_mode != MovementMode.WaitInCover)
                     WaitInCover();
-            }
+            }*/
            
 
         }
@@ -250,7 +251,7 @@ public class MobAI : MonoBehaviour
     public void SeesPlayer()
     {
         if (currentWaypointtrig) StopCoroutine("GoToNextWPCor");
-        target = player.transform;
+        target.position = player.transform.position;
         movement_mode = MovementMode.GoToPlayer;
         Move();
         print("»ду к игроку");

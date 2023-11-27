@@ -23,9 +23,17 @@ public class InVisionDetecting : MonoBehaviour
     public void ChangePlayMode(GameController.GamePlayMode mode)
     {
         if(mode == GameController.GamePlayMode.PlayerHide)
+        {
+            print("StartCoroutine(CheckInVisionCor())");
             StartCoroutine(CheckInVisionCor());
+        }
+            
         else if (mode == GameController.GamePlayMode.PlayerSeek)
+        {
+            print("StopCoroutine(CheckInVisionCor())");
             StopCoroutine(CheckInVisionCor());
+        }
+            
 
     }
 

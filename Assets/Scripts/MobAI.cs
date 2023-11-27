@@ -5,6 +5,12 @@ using UnityEngine.AI;
 
 public class MobAI : MonoBehaviour
 {
+
+    //to do: точка к которой идёт крывающийся моб должна проверяться на скрытность пока моб идёт
+    // если safe position сфера спавнится так что моб не перестаёт её касаться (рядом) то не срабатывает OnTriggerEnter в SafePointTrig, и моб не считает что он дошёл
+    //иногда моб не может найти safe точку
+
+
     [Header("Точки поиска")]
     public Transform[] all_wps;
 
@@ -346,9 +352,10 @@ public class MobAI : MonoBehaviour
                             print("navPoint.position " + navPoint.position);
 
 
-                            if (NavMesh.FindClosestEdge(navPoint.position, out navPoint, agent.areaMask))
+                            if (!NavMesh.FindClosestEdge(navPoint.position, out navPoint, agent.areaMask))
                             {
                                 print("can not FindClosestEdge");
+                                
                             }
 
 
@@ -356,7 +363,7 @@ public class MobAI : MonoBehaviour
 
                             Vector3 direction1 = navPoint.normal;
                             NavMeshHit navPoint1;
-                            Vector3 position1 = navPoint.position + direction1 * 0.5f;
+                            Vector3 position1 = navPoint.position + direction1 * 0.2f;
 
 
 
@@ -370,6 +377,7 @@ public class MobAI : MonoBehaviour
 
                                         safePoint.position = navPoint1.position;
                                         target = safePoint;
+
                                         movement_mode = MovementMode.HideFromPlayer;
                                         Move();
                                         print("Моб идёт к укрытию" + hit.transform.gameObject);

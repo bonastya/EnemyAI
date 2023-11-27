@@ -29,7 +29,7 @@ public class GameController : MonoBehaviour
 
     void Start()
     {
-        playMode = GamePlayMode.PlayerHide;
+        
         ChangeMode(playMode);
     }
 

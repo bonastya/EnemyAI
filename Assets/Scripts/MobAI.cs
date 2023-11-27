@@ -311,7 +311,7 @@ public class MobAI : MonoBehaviour
     public void HideFromPlayer()
     {
 
-
+        print("HideFromPlayer");
         int colliders = Physics.OverlapSphereNonAlloc(vision_point.position, obstacleSearchRadius.radius, obstaclesColliders, obstacles_mask);
 
         for(int i=0; i< colliders; i++)
@@ -335,8 +335,9 @@ public class MobAI : MonoBehaviour
                     if (hit.transform.gameObject == obstaclesColliders[i].gameObject)
                     {
                         NavMeshHit navPoint;
-                        if(NavMesh.SamplePosition(player_camera.position, out navPoint, 2f, agent.areaMask))
+                        if(NavMesh.SamplePosition(hit.transform.position, out navPoint, 2f, agent.areaMask))
                         {
+                            print("navPoint.position "+ navPoint.position);
                             if (Physics.Linecast(player_camera.position, new Vector3(navPoint.position.x, player_camera.position.y, navPoint.position.z), layer_mask))
                             {
 

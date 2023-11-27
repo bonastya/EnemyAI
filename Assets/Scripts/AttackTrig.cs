@@ -37,7 +37,7 @@ public class AttackTrig : MonoBehaviour
             if (mob.movement_mode == MobAI.MovementMode.GoToPlayer)
             {
                 seesPlayer = false;
-                Time.timeScale = 0;
+                //Time.timeScale = 0;
                 gameOverPanel.SetActive(true);
             }
         }

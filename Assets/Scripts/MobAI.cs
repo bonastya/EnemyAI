@@ -76,14 +76,15 @@ public class MobAI : MonoBehaviour
 
         gameController = FindObjectOfType<GameController>();
 
-
+        print("gameController.playMode " + gameController.playMode);
         if (gameController.playMode == GameController.GamePlayMode.PlayerHide)
         {
+            print("GoToNextWP" );
             GoToNextWP();
         }
         else if (gameController.playMode == GameController.GamePlayMode.PlayerSeek)
         {
-            HideFromPlayer();
+            CheckIfInVisionOfPlayer();
         }
 
         StartCoroutine("SetDestinationCor");
@@ -331,13 +332,15 @@ public class MobAI : MonoBehaviour
                 
                 foreach (RaycastHit hit in hits)
                 {
-                    print("столкновение с hit.transform.gameObject " + hit.transform.gameObject);
+                    //print("столкновение с hit.transform.gameObject " + hit.transform.gameObject);
 
                     if (hit.transform.gameObject == obstaclesColliders[i].gameObject)
                     {
                         NavMeshHit navPoint;
-                        if(NavMesh.SamplePosition(hit.transform.position, out navPoint, 2f, agent.areaMask))
+                        if(NavMesh.SamplePosition(hit.transform.position, out navPoint, 10f, agent.areaMask))
                         {
+                            Debug.DrawLine(player_camera.position, new Vector3(navPoint.position.x, player_camera.position.y, navPoint.position.z), Color.red, 10f);
+
                             print("navPoint.position "+ navPoint.position);
                             if (Physics.Linecast(player_camera.position, new Vector3(navPoint.position.x, player_camera.position.y, navPoint.position.z), layer_mask))
                             {
@@ -346,7 +349,7 @@ public class MobAI : MonoBehaviour
                                 target = safePoint;
                                 movement_mode = MovementMode.HideFromPlayer;
                                 Move();
-                                print("Моб идёт к укрытию");
+                                print("Моб идёт к укрытию"+ hit.transform.gameObject);
                                 return;
                             }
                         }

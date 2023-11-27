@@ -54,6 +54,9 @@ public class MobAI : MonoBehaviour
     [Header("Точка найденного укрытия")]
     public Transform safePoint;
 
+    [Header("Lower is better hiding")]
+    public float HideSensitivity =0;
+
     public enum MovementMode
     {
         GoToPlayer,
@@ -340,18 +343,53 @@ public class MobAI : MonoBehaviour
                         if(NavMesh.SamplePosition(hit.transform.position, out navPoint, 10f, agent.areaMask))
                         {
                             Debug.DrawLine(player_camera.position, new Vector3(navPoint.position.x, player_camera.position.y, navPoint.position.z), Color.red, 10f);
+                            print("navPoint.position " + navPoint.position);
 
-                            print("navPoint.position "+ navPoint.position);
-                            if (Physics.Linecast(player_camera.position, new Vector3(navPoint.position.x, player_camera.position.y, navPoint.position.z), layer_mask))
+
+                            if (NavMesh.FindClosestEdge(navPoint.position, out navPoint, agent.areaMask))
                             {
-
-                                safePoint.position = navPoint.position; 
-                                target = safePoint;
-                                movement_mode = MovementMode.HideFromPlayer;
-                                Move();
-                                print("Моб идёт к укрытию"+ hit.transform.gameObject);
-                                return;
+                                print("can not FindClosestEdge");
                             }
+
+
+
+
+                            Vector3 direction1 = navPoint.normal;
+                            NavMeshHit navPoint1;
+                            Vector3 position1 = navPoint.position + direction1 * 0.5f;
+
+
+
+                            if(Vector3.Dot(navPoint.normal, (player_camera.position- navPoint.position).normalized) < HideSensitivity)
+                            {
+                                if (NavMesh.SamplePosition(position1, out navPoint1, 10f, agent.areaMask))
+                                {
+                                    print("navPoint1.position " + navPoint1.position);
+                                    if (Physics.Linecast(player_camera.position, new Vector3(navPoint1.position.x, player_camera.position.y, navPoint1.position.z), layer_mask))
+                                    {
+
+                                        safePoint.position = navPoint1.position;
+                                        target = safePoint;
+                                        movement_mode = MovementMode.HideFromPlayer;
+                                        Move();
+                                        print("Моб идёт к укрытию" + hit.transform.gameObject);
+                                        return;
+                                    }
+                                }
+
+
+
+                            }
+
+
+
+                            
+
+
+
+
+
+                            
                         }
 
                         

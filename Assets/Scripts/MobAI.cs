@@ -6,7 +6,6 @@ using UnityEngine.AI;
 public class MobAI : MonoBehaviour
 {
 
-    //to do: точка к которой идёт крывающийся моб должна проверяться на скрытность пока моб идёт
     // если safe position сфера спавнится так что моб не перестаёт её касаться (рядом) то не срабатывает OnTriggerEnter в SafePointTrig, и моб не считает что он дошёл
     //иногда моб не может найти safe точку
 
@@ -381,33 +380,17 @@ public class MobAI : MonoBehaviour
                                         movement_mode = MovementMode.HideFromPlayer;
                                         Move();
                                         print("Моб идёт к укрытию" + hit.transform.gameObject);
+                                        StartCoroutine(IfSafePointStillSafe(safePoint.position));
                                         return;
                                     }
                                 }
 
-
-
                             }
-
-
-
-                            
-
-
-
-
-
-                            
+  
                         }
-
-                        
-
 
                     }
                 }
-
-                
-
 
             }
             else
@@ -416,15 +399,23 @@ public class MobAI : MonoBehaviour
                 Debug.Log("Did not Hit");
             }
 
+        } 
+
+    }
 
 
+
+    IEnumerator IfSafePointStillSafe(Vector3 safePosition)
+    {
+        while (Physics.Linecast(player_camera.position, safePosition, layer_mask))
+        {
+            yield return new WaitForSeconds(0.1f);
+            print("Save point is safe");
 
         }
-
-
-
-        
-
+        if (movement_mode == MovementMode.HideFromPlayer)
+            HideFromPlayer();
+        print("Save point is not safe");
     }
 
     public void WaitInCover()
@@ -432,6 +423,7 @@ public class MobAI : MonoBehaviour
         movement_mode = MovementMode.WaitInCover;
         agent.isStopped = true;
         mob_animator.SetBool("isWalk", false);
+        StopCoroutine("IfSafePointStillSafe");
 
     }
 

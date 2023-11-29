@@ -9,6 +9,7 @@ public class SafePointTrig : MonoBehaviour
     public float moveDelayMax = 5f;
 
     private MobAI mob;
+    private bool playerIsHere=false;
 
 
     private void OnTriggerEnter(Collider colider)
@@ -20,9 +21,22 @@ public class SafePointTrig : MonoBehaviour
                 mob = colider.gameObject.GetComponent<MobAI>();
                 mob.WaitInCover();
             }
+            playerIsHere = true;
         }
     }
 
 
+    public bool ifPlayerColiding()
+    {
+        return playerIsHere;
+    }
+
+    private void OnTriggerExit(Collider colider)
+    {
+        if (colider.gameObject.tag == "Mob")
+        {
+            playerIsHere = false;
+        }
+    }
 
 }

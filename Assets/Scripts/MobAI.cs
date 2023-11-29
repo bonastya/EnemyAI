@@ -62,6 +62,11 @@ public class MobAI : MonoBehaviour
     [Header("Lower is better hiding")]
     public float HideSensitivity =0;
 
+
+
+    private Coroutine SafePointCor;
+
+
     public enum MovementMode
     {
         GoToPlayer,
@@ -320,22 +325,28 @@ public class MobAI : MonoBehaviour
 
     public void HideFromPlayer()
     {
-
+        Vector3 playerCameraPosition = player_camera.position;
         print("HideFromPlayer");
+        if (SafePointCor != null)
+            StopCoroutine(SafePointCor);
+
+
         int colliders = Physics.OverlapSphereNonAlloc(vision_point.position, obstacleSearchRadius.radius, obstaclesColliders, obstacles_mask);
 
         for(int i=0; i< colliders; i++)
         {
-            
+            //Vector3 playerHeightColliderPosition = new Vector3(obstaclesColliders[i].gameObject.transform.position.x, playerCameraPosition.y, obstaclesColliders[i].gameObject.transform.position.z);
+
             //расчёт направления
-            Vector3 direction = obstaclesColliders[i].gameObject.transform.position - player_camera.position;
+            Vector3 direction = obstaclesColliders[i].gameObject.transform.position - playerCameraPosition;
+            Vector3 playerHeightdirection = new Vector3(direction.x, playerCameraPosition.y, direction.z);
             RaycastHit[] hits;
 
-            hits = Physics.RaycastAll(player_camera.position, direction, Mathf.Infinity);
+            hits = Physics.RaycastAll(playerCameraPosition, playerHeightdirection, Mathf.Infinity);
 
             if (hits.Length>0)
             {
-                Debug.DrawRay(player_camera.position, direction * 1000, Color.yellow);
+                Debug.DrawRay(playerCameraPosition, playerHeightdirection * 1000, Color.yellow);
 
                 
                 foreach (RaycastHit hit in hits)
@@ -347,7 +358,7 @@ public class MobAI : MonoBehaviour
                         NavMeshHit navPoint;
                         if(NavMesh.SamplePosition(hit.transform.position, out navPoint, 10f, agent.areaMask))
                         {
-                            Debug.DrawLine(player_camera.position, new Vector3(navPoint.position.x, player_camera.position.y, navPoint.position.z), Color.red, 10f);
+                            //Debug.DrawLine(playerCameraPosition, new Vector3(navPoint.position.x, playerCameraPosition.y, navPoint.position.z), Color.red, 10f);
                             print("navPoint.position " + navPoint.position);
 
 
@@ -366,12 +377,13 @@ public class MobAI : MonoBehaviour
 
 
 
-                            if(Vector3.Dot(navPoint.normal, (player_camera.position- navPoint.position).normalized) < HideSensitivity)
+                            if(Vector3.Dot(navPoint.normal, (playerCameraPosition - navPoint.position).normalized) < HideSensitivity)
                             {
                                 if (NavMesh.SamplePosition(position1, out navPoint1, 10f, agent.areaMask))
                                 {
+                                    Debug.DrawLine(playerCameraPosition, new Vector3(navPoint.position.x, playerCameraPosition.y, navPoint.position.z), Color.red, 10f);
                                     print("navPoint1.position " + navPoint1.position);
-                                    if (Physics.Linecast(player_camera.position, new Vector3(navPoint1.position.x, player_camera.position.y, navPoint1.position.z), layer_mask))
+                                    if (Physics.Linecast(playerCameraPosition, new Vector3(navPoint1.position.x, playerCameraPosition.y, navPoint1.position.z), layer_mask))
                                     {
 
                                         safePoint.position = navPoint1.position;
@@ -380,7 +392,15 @@ public class MobAI : MonoBehaviour
                                         movement_mode = MovementMode.HideFromPlayer;
                                         Move();
                                         print("Моб идёт к укрытию" + hit.transform.gameObject);
-                                        StartCoroutine(IfSafePointStillSafe(safePoint.position));
+                                        SafePointCor = StartCoroutine(IfSafePointStillSafe(safePoint.position));
+
+                                        if (safePoint.GetComponent<SafePointTrig>().ifPlayerColiding())
+                                        {
+                                            print("collider is near");
+                                            StartCoroutine(WaitWhenGoToNearPoint());
+                                            
+                                        }
+                                           
                                         return;
                                     }
                                 }
@@ -395,7 +415,7 @@ public class MobAI : MonoBehaviour
             }
             else
             {
-                Debug.DrawRay(player_camera.position, direction * 1000, Color.white);
+                Debug.DrawRay(playerCameraPosition, direction * 1000, Color.white);
                 Debug.Log("Did not Hit");
             }
 
@@ -407,7 +427,7 @@ public class MobAI : MonoBehaviour
 
     IEnumerator IfSafePointStillSafe(Vector3 safePosition)
     {
-        while (Physics.Linecast(player_camera.position, safePosition, layer_mask))
+        while (Physics.Linecast(player_camera.position, new Vector3(safePosition.x, player_camera.position.y, safePosition.z), layer_mask))
         {
             yield return new WaitForSeconds(0.1f);
             print("Save point is safe");
@@ -415,7 +435,15 @@ public class MobAI : MonoBehaviour
         }
         if (movement_mode == MovementMode.HideFromPlayer)
             HideFromPlayer();
+        SafePointCor = null;
+
         print("Save point is not safe");
+    }
+
+    IEnumerator WaitWhenGoToNearPoint()
+    {
+        yield return new WaitForSeconds(0.3f);
+        WaitInCover();
     }
 
     public void WaitInCover()
@@ -423,9 +451,12 @@ public class MobAI : MonoBehaviour
         movement_mode = MovementMode.WaitInCover;
         agent.isStopped = true;
         mob_animator.SetBool("isWalk", false);
-        StopCoroutine("IfSafePointStillSafe");
+        if(SafePointCor!=null)
+            StopCoroutine(SafePointCor);
+        print("StopCoroutine(IfSafePointStillSafe)");
 
     }
+
 
 
     public void Stop(string animName)

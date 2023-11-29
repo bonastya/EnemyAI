@@ -313,13 +313,49 @@ public class MobAI : MonoBehaviour
 
 
 
-    //если этот режим то
-    //провер€ть видит ли мен€ игрок посто€нно
-    //если видит то выбирать ближайшую точку и идти туда
-    //иначе со€ть
 
-    //выбрать ближайшую точку
-    //
+
+    //позиции и колайдеру возвращает  позицию удара с обратной стороны
+
+   public RaycastHit HitBackSidePosition(Vector3 startPosition, GameObject coliderObject)
+    {
+
+       Vector3 direction = (coliderObject.transform.position - startPosition);
+       Vector3 oneHeightdirection = new Vector3(direction.x, startPosition.y, direction.z);
+
+       RaycastHit[] hits;
+
+       hits = Physics.RaycastAll(startPosition, oneHeightdirection, Mathf.Infinity);
+
+       RaycastHit firstSideHit = new RaycastHit();
+
+        foreach (RaycastHit hit in hits)
+        {
+            if (hit.transform.gameObject == coliderObject)
+            {
+                firstSideHit = hit;
+
+                Vector3 offsetPoint = startPosition + (100f * oneHeightdirection);
+                Ray firstRay = new Ray(startPosition, oneHeightdirection);
+
+                Vector3 reverseOrigin = firstRay.origin + (firstRay.direction * 100f);
+                RaycastHit reverseHit;
+                Ray reverseRay = new Ray(reverseOrigin, (firstRay.direction * -1));
+                firstSideHit.collider.Raycast(reverseRay, out reverseHit, 100f);
+
+                Debug.DrawLine(offsetPoint, reverseHit.point, Color.red, 10f);
+
+
+                print("point " + reverseHit.point );
+                return reverseHit;
+
+            }
+        }
+        print("no point ");
+
+        return new RaycastHit();
+
+    }
 
 
 
@@ -332,86 +368,54 @@ public class MobAI : MonoBehaviour
 
 
         int colliders = Physics.OverlapSphereNonAlloc(vision_point.position, obstacleSearchRadius.radius, obstaclesColliders, obstacles_mask);
+        print("colliders " + colliders);
 
-        for(int i=0; i< colliders; i++)
+        for (int i=0; i< colliders; i++)
         {
-            //Vector3 playerHeightColliderPosition = new Vector3(obstaclesColliders[i].gameObject.transform.position.x, playerCameraPosition.y, obstaclesColliders[i].gameObject.transform.position.z);
+            
+            RaycastHit raycastHit = HitBackSidePosition(playerCameraPosition, obstaclesColliders[i].gameObject);
 
             //расчЄт направлени€
             Vector3 direction = obstaclesColliders[i].gameObject.transform.position - playerCameraPosition;
-            Vector3 playerHeightdirection = new Vector3(direction.x, playerCameraPosition.y, direction.z);
-            RaycastHit[] hits;
-
-            hits = Physics.RaycastAll(playerCameraPosition, playerHeightdirection, Mathf.Infinity);
-
-            if (hits.Length>0)
+            
+            if (raycastHit.collider!=null)
             {
-                Debug.DrawRay(playerCameraPosition, playerHeightdirection * 1000, Color.yellow);
-
-                
-                foreach (RaycastHit hit in hits)
+                NavMeshHit navPoint;
+                if (NavMesh.SamplePosition(raycastHit.transform.position, out navPoint, 10f, agent.areaMask))
                 {
-                    //print("столкновение с hit.transform.gameObject " + hit.transform.gameObject);
+                    print("navPoint.position " + navPoint.position);
 
-                    if (hit.transform.gameObject == obstaclesColliders[i].gameObject)
+                    if (!NavMesh.FindClosestEdge(navPoint.position, out navPoint, agent.areaMask))
                     {
-                        NavMeshHit navPoint;
-                        if(NavMesh.SamplePosition(hit.transform.position, out navPoint, 10f, agent.areaMask))
+                        print("can not FindClosestEdge");
+                    }
+
+                    Vector3 direction1 = navPoint.normal;
+                    NavMeshHit navPoint1;
+                    Vector3 position1 = navPoint.position + direction1 * 0.2f;
+
+                    if (NavMesh.SamplePosition(position1, out navPoint1, 10f, agent.areaMask))
+                    {
+                        print("navPoint1.position " + navPoint1.position);
+                        if (Physics.Linecast(playerCameraPosition, new Vector3(navPoint1.position.x, playerCameraPosition.y, navPoint1.position.z), layer_mask))
                         {
-                            //Debug.DrawLine(playerCameraPosition, new Vector3(navPoint.position.x, playerCameraPosition.y, navPoint.position.z), Color.red, 10f);
-                            print("navPoint.position " + navPoint.position);
+                            safePoint.position = navPoint1.position;
+                            target = safePoint;
 
+                            movement_mode = MovementMode.HideFromPlayer;
+                            Move();
+                            print("ћоб идЄт к укрытию" + raycastHit.transform.gameObject);
+                            SafePointCor = StartCoroutine(IfSafePointStillSafe(safePoint.position));
 
-                            if (!NavMesh.FindClosestEdge(navPoint.position, out navPoint, agent.areaMask))
+                            if (safePoint.GetComponent<SafePointTrig>().ifPlayerColiding())
                             {
-                                print("can not FindClosestEdge");
-                                
+                                print("collider is near");
+                                StartCoroutine(WaitWhenGoToNearPoint());
                             }
-
-
-
-
-                            Vector3 direction1 = navPoint.normal;
-                            NavMeshHit navPoint1;
-                            Vector3 position1 = navPoint.position + direction1 * 0.2f;
-
-
-
-                            if(Vector3.Dot(navPoint.normal, (playerCameraPosition - navPoint.position).normalized) < HideSensitivity)
-                            {
-                                if (NavMesh.SamplePosition(position1, out navPoint1, 10f, agent.areaMask))
-                                {
-                                    Debug.DrawLine(playerCameraPosition, new Vector3(navPoint.position.x, playerCameraPosition.y, navPoint.position.z), Color.red, 10f);
-                                    print("navPoint1.position " + navPoint1.position);
-                                    if (Physics.Linecast(playerCameraPosition, new Vector3(navPoint1.position.x, playerCameraPosition.y, navPoint1.position.z), layer_mask))
-                                    {
-
-                                        safePoint.position = navPoint1.position;
-                                        target = safePoint;
-
-                                        movement_mode = MovementMode.HideFromPlayer;
-                                        Move();
-                                        print("ћоб идЄт к укрытию" + hit.transform.gameObject);
-                                        SafePointCor = StartCoroutine(IfSafePointStillSafe(safePoint.position));
-
-                                        if (safePoint.GetComponent<SafePointTrig>().ifPlayerColiding())
-                                        {
-                                            print("collider is near");
-                                            StartCoroutine(WaitWhenGoToNearPoint());
-                                            
-                                        }
-                                           
-                                        return;
-                                    }
-                                }
-
-                            }
-  
+                            return;
                         }
-
                     }
                 }
-
             }
             else
             {

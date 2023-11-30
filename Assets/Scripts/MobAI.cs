@@ -30,6 +30,12 @@ public class MobAI : MonoBehaviour
     [Header("Метка куда идёт")]
     public Transform target_point_vis;
 
+    [Header("Скорость моба при режиме поиска")]
+    public float seekSpeed=1f;
+
+    [Header("Скорость моба при режиме скрывания")]
+    public float hideSpeed=4f;
+
     [HideInInspector] public GameController gameController;
     [HideInInspector] public GameObject player;
     [HideInInspector] public bool playerOnVisionTrig;
@@ -65,6 +71,7 @@ public class MobAI : MonoBehaviour
 
 
     private Coroutine SafePointCor;
+    private Coroutine WayPointCor;
 
 
     public enum MovementMode
@@ -92,8 +99,8 @@ public class MobAI : MonoBehaviour
         print("gameController.playMode " + gameController.playMode);
         if (gameController.playMode == GameController.GamePlayMode.PlayerHide)
         {
-            //print("GoToNextWP" );
-            GoToNextWP();
+            print("GoToNextWP");
+            StartGoToNextWPCor(0);
         }
         else if (gameController.playMode == GameController.GamePlayMode.PlayerSeek)
         {
@@ -127,24 +134,28 @@ public class MobAI : MonoBehaviour
         if (playMode == GameController.GamePlayMode.PlayerHide)
         {
             mobPlayMode = playMode;
-            
+            agent.speed = seekSpeed;
 
 
         }
         else if (playMode == GameController.GamePlayMode.PlayerSeek)
         {
             mobPlayMode = playMode;
+
+            agent.speed = hideSpeed;
+
             StopCoroutine("RayOnPlayerCor");
 
         }
     }
 
+    //проверка что игрок в поле зрения моба
 /*    private void CheckIfPlayerInVision()
     {
         Collider[] hitColliders = Physics.OverlapSphere(player_camera.transform.position, 0f, mob_vision_mask);
         if (hitColliders.Length > 0)
         {
-            
+
             //проверка что игрок не был в триггере до этого
             if (!isVisionPlayerCollision)
             {
@@ -220,7 +231,7 @@ public class MobAI : MonoBehaviour
 
                 if (!Physics.Linecast(vision_point.position, player_camera.position, out str, layer_mask))
                 {
-                    //print("ни с чем не столкнулся");
+                    print("ни с чем не столкнулся");
                     if (movement_mode != MovementMode.GoToPlayer)
                         SeesPlayer();
                 }
@@ -264,8 +275,14 @@ public class MobAI : MonoBehaviour
 
     public void SeesPlayer()
     {
-        if (currentWaypointtrig) StopCoroutine("GoToNextWPCor");
-        target.position = player.transform.position;
+        /*if (currentWaypointtrig) {
+            
+        } */
+        if (WayPointCor != null)
+            StopCoroutine(WayPointCor);
+
+
+        target = player.transform;
         movement_mode = MovementMode.GoToPlayer;
         Move();
         print("Иду к игроку");
@@ -286,7 +303,7 @@ public class MobAI : MonoBehaviour
     //запускается при достижении WayPoint
     public void StartGoToNextWPCor(float delay)
     {
-        StartCoroutine(GoToNextWPCor(delay));
+        WayPointCor=StartCoroutine(GoToNextWPCor(delay));
     }
 
     IEnumerator GoToNextWPCor(float delay)
@@ -308,6 +325,7 @@ public class MobAI : MonoBehaviour
         movement_mode = MovementMode.CheckWayPoints;
         Move();
         print("Следующая точка");
+        WayPointCor = null;
 
     }
 
@@ -356,7 +374,6 @@ public class MobAI : MonoBehaviour
         return new RaycastHit();
 
     }
-
 
 
     public void HideFromPlayer()
@@ -428,7 +445,6 @@ public class MobAI : MonoBehaviour
     }
 
 
-
     IEnumerator IfSafePointStillSafe(Vector3 safePosition)
     {
         while (Physics.Linecast(player_camera.position, new Vector3(safePosition.x, player_camera.position.y, safePosition.z), layer_mask))
@@ -468,14 +484,14 @@ public class MobAI : MonoBehaviour
         movement_mode = MovementMode.CheckWayPoints;
         agent.isStopped = true;
         mob_animator.SetBool("isWalk", false);
-        mob_animator.SetTrigger(animName);
+        //mob_animator.SetTrigger(animName);
 
     }
 
     public void Move()
     {
-        if (!mob_animator.GetCurrentAnimatorStateInfo(0).IsName("walk"))
-            mob_animator.SetTrigger("isWalk");
+        //if (!mob_animator.GetCurrentAnimatorStateInfo(0).IsName("walk"))
+            //mob_animator.SetTrigger("isWalk");
 
         mob_animator.SetBool("isWalk", true);
         agent.isStopped = false;

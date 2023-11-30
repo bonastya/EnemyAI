@@ -1301,7 +1301,7 @@ NavMeshAgent:
   m_Enabled: 1
   m_AgentTypeID: 0
   m_Radius: 0.1
-  m_Speed: 1
+  m_Speed: 4
   m_Acceleration: 300
   avoidancePriority: 50
   m_AngularSpeed: 300
@@ -1591,7 +1591,7 @@ MonoBehaviour:
   Player: {fileID: 1399883948}
   Mobs:
   - {fileID: 443529206}
-  playMode: 0
+  playMode: 1
 --- !u!1 &639914024
 GameObject:
   m_ObjectHideFlags: 0
@@ -3246,7 +3246,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1392555993}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.65, y: 1.06, z: -11.9}
+  m_LocalPosition: {x: -3.15, y: 1.06, z: -2.59}
   m_LocalScale: {x: 0.72401625, y: 0.72401625, z: 0.72401625}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3358,7 +3358,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1399883939}
   m_LocalRotation: {x: -0, y: -0.8298535, z: -0, w: 0.55798143}
-  m_LocalPosition: {x: 10.09, y: 0.921, z: -12.56}
+  m_LocalPosition: {x: 9.82, y: 0.921, z: 10.41}
   m_LocalScale: {x: 0.45199, y: 0.45199, z: 0.45199}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -6694,7 +6694,6 @@ GameObject:
   - component: {fileID: 7873031134409112656}
   - component: {fileID: 443529206}
   - component: {fileID: 443529208}
-  - component: {fileID: 7873031134409112657}
   m_Layer: 7
   m_Name: MobGirl
   m_TagString: Mob
@@ -8098,19 +8097,6 @@ CapsuleCollider:
   m_Height: 1
   m_Direction: 1
   m_Center: {x: 0, y: 0.74, z: 0}
---- !u!114 &7873031134409112657
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4484111762407073007}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 00bd1a9660c726e498be9c4124b9df61, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  destination: {fileID: 1302004574}
 --- !u!1 &7922523906682800025
 GameObject:
   m_ObjectHideFlags: 0

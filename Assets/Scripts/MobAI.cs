@@ -6,8 +6,12 @@ using UnityEngine.AI;
 public class MobAI : MonoBehaviour
 {
 
-    // если safe position сфера спавнитс€ так что моб не перестаЄт еЄ касатьс€ (р€дом) то не срабатывает OnTriggerEnter в SafePointTrig, и моб не считает что он дошЄл
-    //иногда моб не может найти safe точку
+    //добавить атаку моба на игрока
+    // добавить модельки 
+    //почистить код, комментарии
+
+    //попробовать 2 моба
+    //добавить звуки
 
 
     [Header("“очки поиска")]
@@ -109,11 +113,7 @@ public class MobAI : MonoBehaviour
 
         StartCoroutine("SetDestinationCor");
 
-
     }
-
-
-
 
 
     private void Update()
@@ -125,7 +125,6 @@ public class MobAI : MonoBehaviour
             CheckIfInVisionOfPlayer();
         }
 
-        
     }
 
 
@@ -148,35 +147,6 @@ public class MobAI : MonoBehaviour
 
         }
     }
-
-    //проверка что игрок в поле зрени€ моба
-/*    private void CheckIfPlayerInVision()
-    {
-        Collider[] hitColliders = Physics.OverlapSphere(player_camera.transform.position, 0f, mob_vision_mask);
-        if (hitColliders.Length > 0)
-        {
-
-            //проверка что игрок не был в триггере до этого
-            if (!isVisionPlayerCollision)
-            {
-                isVisionPlayerCollision = true;
-                Debug.Log("Colliding with: " + hitColliders[0]);
-                StartCoroutine("RayOnPlayerCor");
-                playerOnVisionTrig = true;
-            }
-
-        }
-        else
-        {
-            if (isVisionPlayerCollision)
-            {
-                isVisionPlayerCollision = false;
-                Debug.Log("Not colliding");
-                StopCoroutine("RayOnPlayerCor");
-                playerOnVisionTrig = false;
-            }
-        }
-    }*/
 
 
     private void CheckIfInVisionOfPlayer()
@@ -257,16 +227,12 @@ public class MobAI : MonoBehaviour
 
             if (!Physics.Linecast(vision_point.position, player_camera.position, out str, layer_mask))
             {
-                //print("ни с чем не столкнулс€");
+                
                 if (movement_mode != MovementMode.HideFromPlayer)
                     HideFromPlayer();
 
             }
-            /*else
-            {
-                if (movement_mode != MovementMode.WaitInCover)
-                    WaitInCover();
-            }*/
+            
            
 
         }
@@ -275,9 +241,7 @@ public class MobAI : MonoBehaviour
 
     public void SeesPlayer()
     {
-        /*if (currentWaypointtrig) {
-            
-        } */
+
         if (WayPointCor != null)
             StopCoroutine(WayPointCor);
 
@@ -484,7 +448,6 @@ public class MobAI : MonoBehaviour
         movement_mode = MovementMode.CheckWayPoints;
         agent.isStopped = true;
         mob_animator.SetBool("isWalk", false);
-        //mob_animator.SetTrigger(animName);
 
     }
 

@@ -59,8 +59,8 @@ public class MobAI : MonoBehaviour
     [Header("Точка найденного укрытия")]
     public Transform safePoint;
 
-    [Header("Lower is better hiding")]
-    public float HideSensitivity =0;
+    /*[Header("Lower is better hiding")]
+    public float HideSensitivity =0;*/
 
 
 
@@ -92,7 +92,7 @@ public class MobAI : MonoBehaviour
         print("gameController.playMode " + gameController.playMode);
         if (gameController.playMode == GameController.GamePlayMode.PlayerHide)
         {
-            print("GoToNextWP" );
+            //print("GoToNextWP" );
             GoToNextWP();
         }
         else if (gameController.playMode == GameController.GamePlayMode.PlayerSeek)
@@ -127,8 +127,7 @@ public class MobAI : MonoBehaviour
         if (playMode == GameController.GamePlayMode.PlayerHide)
         {
             mobPlayMode = playMode;
-
-
+            
 
 
         }
@@ -203,6 +202,7 @@ public class MobAI : MonoBehaviour
             yield return new WaitForSeconds(0.1f);
             agent.SetDestination(target.position);
             target_point_vis.position = target.position;
+            
         }
     }
 

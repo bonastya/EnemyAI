@@ -58,6 +58,7 @@ public class MobAI : MonoBehaviour
     private Coroutine SafePointCor;
     private Coroutine WayPointCor;
 
+    bool ifFoundCollider = false;
 
     public enum MovementMode
     {
@@ -314,14 +315,14 @@ public class MobAI : MonoBehaviour
                 firstSideHit.collider.Raycast(reverseRay, out reverseHit, 100f);
 
                 Debug.DrawLine(offsetPoint, reverseHit.point, Color.red, 4f);
+                ifFoundCollider = true;
 
                 return reverseHit;
 
             }
         }
         print("Не удалось найти точку за объектом" + coliderObject);
-
-
+        ifFoundCollider = false;
         return new RaycastHit();
 
     }
@@ -346,7 +347,7 @@ public class MobAI : MonoBehaviour
             //расчёт направления от игрока к предполагаемой безопасной позиции
             Vector3 direction = obstaclesColliders[i].gameObject.transform.position - playerCameraPosition;
 
-            if (raycastHit.collider != null)
+            if (ifFoundCollider)
             {
                 NavMeshHit navPoint;
                 //ближайшая позиция NavMesh 

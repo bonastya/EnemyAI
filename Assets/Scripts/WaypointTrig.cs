@@ -19,7 +19,7 @@ public class WaypointTrig : MonoBehaviour
             if(transform == colider.gameObject.GetComponent<MobAI>().target)
             {
                 mob = colider.gameObject.GetComponent<MobAI>();
-                mob.Stop(pointAnimName);
+                mob.Stop();
                 mob.currentWaypointtrig = this;
                 mob.StartGoToNextWPCor(Random.Range(moveDelayMin, moveDelayMax));
             }

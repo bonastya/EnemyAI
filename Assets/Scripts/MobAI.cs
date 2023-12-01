@@ -3,36 +3,27 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
+[RequireComponent(typeof(NavMeshAgent))]
 public class MobAI : MonoBehaviour
 {
 
-    //добавить атаку моба на игрока
-    // добавить модельки 
-    //почистить код, комментарии
-
-    //попробовать 2 моба
-    //добавить звуки
-
-
     [Header("Точки поиска")]
-    public Transform[] all_wps;
+    public Transform[] allWps;
 
-    [Header("Точка откуда пускается луч во время препятствий (на голове)")]
-    public Transform vision_point;
+    [Header("Точка откуда пускается луч во время препятствий (на голове моба)")]
+    public Transform visionPoint;
 
     [Header("Слои для определения видимости (что преграждает)")]
-    public LayerMask layer_mask;
+    public LayerMask obstacleLayerMask;
 
     [Header("Слой вижена игрока")]
-    public LayerMask player_vision_mask;
-    [Header("Слой препятствий")]
-    public LayerMask obstacles_mask;
+    public LayerMask playerVisionMask;
 
     [Header("Метка где последний раз видел игрока")]
-    public Transform player_last_point_trig;
+    public Transform playerLastPointTrig;
 
-    [Header("Метка куда идёт")]
-    public Transform target_point_vis;
+    [Header("Метка куда идёт моб (визуализация)")]
+    public Transform targetPointVis;
 
     [Header("Скорость моба при режиме поиска")]
     public float seekSpeed=1f;
@@ -44,21 +35,16 @@ public class MobAI : MonoBehaviour
     [HideInInspector] public GameObject player;
     [HideInInspector] public bool playerOnVisionTrig;
 
-    [HideInInspector] public MovementMode movement_mode; //0 - не видит, 1 - идёт к последней точке, 2 - видит и идёт к игроку
-
+    [HideInInspector] public MovementMode movementMode; 
     [HideInInspector] public Transform target;
 
-    Transform player_camera;
-    Transform my_transform;
+    Transform playerCamera;
     NavMeshAgent agent;
-    Animator mob_animator;
+    Animator mobAnimator;
 
     [HideInInspector] public WaypointTrig currentWaypointtrig;
-
     bool isInPlayerVision = false;
-
     GameController.GamePlayMode mobPlayMode;
-
 
 
     Collider[] obstaclesColliders = new Collider[10];
@@ -68,11 +54,6 @@ public class MobAI : MonoBehaviour
 
     [Header("Точка найденного укрытия")]
     public Transform safePoint;
-
-    /*[Header("Lower is better hiding")]
-    public float HideSensitivity =0;*/
-
-
 
     private Coroutine SafePointCor;
     private Coroutine WayPointCor;
@@ -90,13 +71,12 @@ public class MobAI : MonoBehaviour
 
     void Start()
     {
-        my_transform = transform;
         target = transform;
         player = GameObject.FindWithTag("Player");
-        player_camera = GameObject.FindWithTag("MainCamera").transform;
-        mob_animator = GetComponent<Animator>();
+        playerCamera = GameObject.FindWithTag("MainCamera").transform;
+        mobAnimator = GetComponent<Animator>();
         agent = GetComponent<NavMeshAgent>();
-        currentWaypointtrig = all_wps[1].gameObject.GetComponent<WaypointTrig>();
+        currentWaypointtrig = allWps[1].gameObject.GetComponent<WaypointTrig>();
 
         gameController = FindObjectOfType<GameController>();
 
@@ -118,13 +98,11 @@ public class MobAI : MonoBehaviour
 
     private void Update()
     {
-        //проверить что моб находится в зоне видимости игрока
-
+        //проверка что моб находится в зоне видимости игрока
         if (mobPlayMode == GameController.GamePlayMode.PlayerSeek)
         {
             CheckIfInVisionOfPlayer();
         }
-
     }
 
 
@@ -135,58 +113,33 @@ public class MobAI : MonoBehaviour
             mobPlayMode = playMode;
             agent.speed = seekSpeed;
 
-
         }
         else if (playMode == GameController.GamePlayMode.PlayerSeek)
         {
             mobPlayMode = playMode;
-
             agent.speed = hideSpeed;
-
             StopCoroutine("RayOnPlayerCor");
 
         }
     }
 
-
-    private void CheckIfInVisionOfPlayer()
-    {
-        Collider[] hitColliders = Physics.OverlapSphere(vision_point.position, 0f, player_vision_mask);
-        if (hitColliders.Length > 0)
-        {
-            //проверка что моб не был в триггере до этого
-            if (!isInPlayerVision)
-            {
-                isInPlayerVision = true;
-                Debug.Log("Colliding with: " + hitColliders[0]);
-                StartCoroutine("IsHideFromPlayerRayCor");
-                
-            }
-
-        }
-        else
-        {
-            if (isInPlayerVision)
-            {
-                isInPlayerVision = false;
-                Debug.Log("Not colliding");
-                StopCoroutine("IsHideFromPlayerRayCor");
-                
-            }
-        }
-    }
-
+    //используется для обоих режимов игры
+    //target указывает на актуальную цель для Navagent
     IEnumerator SetDestinationCor()
     {
         while (true)
         {
             yield return new WaitForSeconds(0.1f);
             agent.SetDestination(target.position);
-            target_point_vis.position = target.position;
-            
+            targetPointVis.position = target.position;
+
         }
     }
 
+
+    #region player hide mode
+
+    //проверка есть ли препятствия между игроком и мобом
     IEnumerator RayOnPlayerCor()
     {
         RaycastHit str;
@@ -194,49 +147,24 @@ public class MobAI : MonoBehaviour
         while (true)
         {
             yield return new WaitForSeconds(0.1f);
-
+            //если в области видимости моба
             if (playerOnVisionTrig)
             {
-                Debug.DrawLine(vision_point.position, player_camera.position, Color.red);
-
-                if (!Physics.Linecast(vision_point.position, player_camera.position, out str, layer_mask))
+                Debug.DrawLine(visionPoint.position, playerCamera.position, Color.red);
+                //если нет препятствий
+                if (!Physics.Linecast(visionPoint.position, playerCamera.position, out str, obstacleLayerMask))
                 {
-                    print("ни с чем не столкнулся");
-                    if (movement_mode != MovementMode.GoToPlayer)
+                    if (movementMode != MovementMode.GoToPlayer)
                         SeesPlayer();
                 }
-                else if (movement_mode == MovementMode.GoToPlayer)
+                else if (movementMode == MovementMode.GoToPlayer)
                 {
                     GoToPlayerLastPoint();
                 }
             }
-
-
         }
     }
 
-    IEnumerator IsHideFromPlayerRayCor()
-    {
-        RaycastHit str;
-
-        while (true)
-        {
-            yield return new WaitForSeconds(0.1f);
-
-            Debug.DrawLine(vision_point.position, player_camera.position, Color.green);
-
-            if (!Physics.Linecast(vision_point.position, player_camera.position, out str, layer_mask))
-            {
-                
-                if (movement_mode != MovementMode.HideFromPlayer)
-                    HideFromPlayer();
-
-            }
-            
-           
-
-        }
-    }
 
 
     public void SeesPlayer()
@@ -245,19 +173,18 @@ public class MobAI : MonoBehaviour
         if (WayPointCor != null)
             StopCoroutine(WayPointCor);
 
-
         target = player.transform;
-        movement_mode = MovementMode.GoToPlayer;
+        movementMode = MovementMode.GoToPlayer;
         Move();
-        print("Иду к игроку");
+        print("Моб идёт к игроку");
 
     }
 
     public void GoToPlayerLastPoint()
     {
-        player_last_point_trig.position = player.transform.position;
-        target = player_last_point_trig;
-        movement_mode = MovementMode.GoToLastPoint;
+        playerLastPointTrig.position = player.transform.position;
+        target = playerLastPointTrig;
+        movementMode = MovementMode.GoToLastPoint;
         Move();
         print("Моб идёт к последней точке где видел игрока");
 
@@ -267,9 +194,10 @@ public class MobAI : MonoBehaviour
     //запускается при достижении WayPoint
     public void StartGoToNextWPCor(float delay)
     {
-        WayPointCor=StartCoroutine(GoToNextWPCor(delay));
+        WayPointCor = StartCoroutine(GoToNextWPCor(delay));
     }
 
+    //задержка на WayPoint
     IEnumerator GoToNextWPCor(float delay)
     {
         yield return new WaitForSeconds(delay);
@@ -277,39 +205,99 @@ public class MobAI : MonoBehaviour
     }
     public void GoToNextWP()
     {
-
         Transform newWP = currentWaypointtrig.transform;
-
+        //выбрать случайную точку кроме текущей
         while (newWP == currentWaypointtrig.transform)
-            newWP = all_wps[Random.Range(0, all_wps.Length)].transform;
+            newWP = allWps[Random.Range(0, allWps.Length)].transform;
 
-        print("я иду к  " + newWP);
+        print("Моб идёт к  " + newWP);
 
         target = newWP;
-        movement_mode = MovementMode.CheckWayPoints;
+        movementMode = MovementMode.CheckWayPoints;
         Move();
-        print("Следующая точка");
         WayPointCor = null;
 
     }
 
+    //когда моб дошёл до WayPoint
+    public void Stop()
+    {
+        movementMode = MovementMode.CheckWayPoints;
+        agent.isStopped = true;
+        mobAnimator.SetBool("isWalk", false);
+
+    }
+
+    #endregion
+
+
+    #region player seek mode
+
+
+    private void CheckIfInVisionOfPlayer()
+    {
+        //пересекается ли точка с зоной видимости игрока
+        Collider[] hitColliders = Physics.OverlapSphere(visionPoint.position, 0f, playerVisionMask);
+        if (hitColliders.Length > 0)
+        {
+            //проверка что моб не был в триггере до этого
+            if (!isInPlayerVision)
+            {
+                isInPlayerVision = true;
+                Debug.Log("Colliding with: " + hitColliders[0]);
+                StartCoroutine("IsHideFromPlayerRayCor");
+            }
+        }
+        else
+        {
+            if (isInPlayerVision)
+            {
+                isInPlayerVision = false;
+                Debug.Log("Not colliding");
+                StopCoroutine("IsHideFromPlayerRayCor");
+
+            }
+        }
+    }
+
+    //проверка что на линии видимости с игроком (нет препятствий)
+    IEnumerator IsHideFromPlayerRayCor()
+    {
+        RaycastHit str;
+
+        while (true)
+        {
+            yield return new WaitForSeconds(0.1f);
+
+            Debug.DrawLine(visionPoint.position, playerCamera.position, Color.green);
+
+            if (!Physics.Linecast(visionPoint.position, playerCamera.position, out str, obstacleLayerMask))
+            {
+
+                if (movementMode != MovementMode.HideFromPlayer)
+                    HideFromPlayer();
+
+            }
 
 
 
+        }
+    }
 
-    //позиции и колайдеру возвращает  позицию удара с обратной стороны
 
-   public RaycastHit HitBackSidePosition(Vector3 startPosition, GameObject coliderObject)
+    //по начальной позиции и объекту возвращает позицию удара о коллайдер объекта с обратной стороны
+
+    public RaycastHit HitBackSidePosition(Vector3 startPosition, GameObject coliderObject)
     {
 
-       Vector3 direction = (coliderObject.transform.position - startPosition);
-       Vector3 oneHeightdirection = new Vector3(direction.x, startPosition.y, direction.z);
+        Vector3 direction = (coliderObject.transform.position - startPosition);
+        Vector3 oneHeightdirection = new Vector3(direction.x, startPosition.y, direction.z);
 
-       RaycastHit[] hits;
+        RaycastHit[] hits;
 
-       hits = Physics.RaycastAll(startPosition, oneHeightdirection, Mathf.Infinity);
+        hits = Physics.RaycastAll(startPosition, oneHeightdirection, Mathf.Infinity);
 
-       RaycastHit firstSideHit = new RaycastHit();
+        RaycastHit firstSideHit = new RaycastHit();
 
         foreach (RaycastHit hit in hits)
         {
@@ -325,140 +313,134 @@ public class MobAI : MonoBehaviour
                 Ray reverseRay = new Ray(reverseOrigin, (firstRay.direction * -1));
                 firstSideHit.collider.Raycast(reverseRay, out reverseHit, 100f);
 
-                Debug.DrawLine(offsetPoint, reverseHit.point, Color.red, 10f);
+                Debug.DrawLine(offsetPoint, reverseHit.point, Color.red, 4f);
 
-
-                print("point " + reverseHit.point );
                 return reverseHit;
 
             }
         }
-        print("no point ");
+        print("Не удалось найти точку за объектом" + coliderObject);
+
 
         return new RaycastHit();
 
     }
 
 
+    //поиск и проверка точки где можно спрятаться
     public void HideFromPlayer()
     {
-        Vector3 playerCameraPosition = player_camera.position;
+        Vector3 playerCameraPosition = playerCamera.position;
         print("HideFromPlayer");
         if (SafePointCor != null)
             StopCoroutine(SafePointCor);
 
+        //коллайдеры в радиусе поиска моба
+        int colliders = Physics.OverlapSphereNonAlloc(visionPoint.position, obstacleSearchRadius.radius, obstaclesColliders, obstacleLayerMask);
 
-        int colliders = Physics.OverlapSphereNonAlloc(vision_point.position, obstacleSearchRadius.radius, obstaclesColliders, obstacles_mask);
-        print("colliders " + colliders);
-
-        for (int i=0; i< colliders; i++)
+        for (int i = 0; i < colliders; i++)
         {
-            
+            //позиция за коллайдером
             RaycastHit raycastHit = HitBackSidePosition(playerCameraPosition, obstaclesColliders[i].gameObject);
 
-            //расчёт направления
+            //расчёт направления от игрока к предполагаемой безопасной позиции
             Vector3 direction = obstaclesColliders[i].gameObject.transform.position - playerCameraPosition;
-            
-            if (raycastHit.collider!=null)
+
+            if (raycastHit.collider != null)
             {
                 NavMeshHit navPoint;
+                //ближайшая позиция NavMesh 
                 if (NavMesh.SamplePosition(raycastHit.transform.position, out navPoint, 10f, agent.areaMask))
                 {
-                    print("navPoint.position " + navPoint.position);
-
+                    //ближайшая грань navMesh
                     if (!NavMesh.FindClosestEdge(navPoint.position, out navPoint, agent.areaMask))
                     {
                         print("can not FindClosestEdge");
                     }
 
-                    Vector3 direction1 = navPoint.normal;
-                    NavMeshHit navPoint1;
-                    Vector3 position1 = navPoint.position + direction1 * 0.2f;
+                    //отступ от края NavMesh перпендикулярно грани
+                    Vector3 normalDirection = navPoint.normal;
+                    NavMeshHit offsetNavPoint;
+                    Vector3 position1 = navPoint.position + normalDirection * 0.2f;
 
-                    if (NavMesh.SamplePosition(position1, out navPoint1, 10f, agent.areaMask))
+
+                    //ближайшая позиция NavMesh к новой точке
+                    if (NavMesh.SamplePosition(position1, out offsetNavPoint, 10f, agent.areaMask))
                     {
-                        print("navPoint1.position " + navPoint1.position);
-                        if (Physics.Linecast(playerCameraPosition, new Vector3(navPoint1.position.x, playerCameraPosition.y, navPoint1.position.z), layer_mask))
+                        //проверка что новая точка не находится на линии прямой видимости с игроком
+                        if (Physics.Linecast(playerCameraPosition, new Vector3(offsetNavPoint.position.x, playerCameraPosition.y, offsetNavPoint.position.z), obstacleLayerMask))
                         {
-                            safePoint.position = navPoint1.position;
+                            safePoint.position = offsetNavPoint.position;
                             target = safePoint;
 
-                            movement_mode = MovementMode.HideFromPlayer;
+                            movementMode = MovementMode.HideFromPlayer;
                             Move();
                             print("Моб идёт к укрытию" + raycastHit.transform.gameObject);
                             SafePointCor = StartCoroutine(IfSafePointStillSafe(safePoint.position));
 
+                            //если точка слишком близко к мобу
                             if (safePoint.GetComponent<SafePointTrig>().ifPlayerColiding())
                             {
-                                print("collider is near");
                                 StartCoroutine(WaitWhenGoToNearPoint());
                             }
                             return;
                         }
+
                     }
+
                 }
-            }
-            else
-            {
-                Debug.DrawRay(playerCameraPosition, direction * 1000, Color.white);
-                Debug.Log("Did not Hit");
+
             }
 
-        } 
+        }
 
     }
 
 
+
+    //проверка что выбранная точка для укрытия моба всё ещё не видна игроку
     IEnumerator IfSafePointStillSafe(Vector3 safePosition)
     {
-        while (Physics.Linecast(player_camera.position, new Vector3(safePosition.x, player_camera.position.y, safePosition.z), layer_mask))
+        while (Physics.Linecast(playerCamera.position, new Vector3(safePosition.x, playerCamera.position.y, safePosition.z), obstacleLayerMask))
         {
             yield return new WaitForSeconds(0.1f);
-            print("Save point is safe");
-
         }
-        if (movement_mode == MovementMode.HideFromPlayer)
+        if (movementMode == MovementMode.HideFromPlayer)
             HideFromPlayer();
         SafePointCor = null;
 
-        print("Save point is not safe");
     }
 
+    //задержка если точка для прятания появилась слишком близко к мобу
     IEnumerator WaitWhenGoToNearPoint()
     {
         yield return new WaitForSeconds(0.3f);
         WaitInCover();
     }
 
+
+    //когда моб достиг скрытной точки
     public void WaitInCover()
     {
-        movement_mode = MovementMode.WaitInCover;
+        movementMode = MovementMode.WaitInCover;
         agent.isStopped = true;
-        mob_animator.SetBool("isWalk", false);
-        if(SafePointCor!=null)
+        mobAnimator.SetBool("isWalk", false);
+        if (SafePointCor != null)
             StopCoroutine(SafePointCor);
-        print("StopCoroutine(IfSafePointStillSafe)");
 
     }
 
 
+    #endregion
 
-    public void Stop(string animName)
-    {
-        movement_mode = MovementMode.CheckWayPoints;
-        agent.isStopped = true;
-        mob_animator.SetBool("isWalk", false);
 
-    }
 
+    //анимация движения
     public void Move()
     {
-        //if (!mob_animator.GetCurrentAnimatorStateInfo(0).IsName("walk"))
-            //mob_animator.SetTrigger("isWalk");
 
-        mob_animator.SetBool("isWalk", true);
+        mobAnimator.SetBool("isWalk", true);
         agent.isStopped = false;
-
 
     }
 

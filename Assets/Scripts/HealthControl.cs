@@ -24,8 +24,8 @@ public class HealthControl : MonoBehaviour
     void Start()
     {
 
-
-       for(int i=0; i< StartHarts; i++)
+        //спавн сердечек по количеству StartHarts
+        for (int i=0; i< StartHarts; i++)
         {
             GameObject imgObject = new GameObject("Heart");
             RectTransform trans = imgObject.AddComponent<RectTransform>();
@@ -42,14 +42,11 @@ public class HealthControl : MonoBehaviour
 
         heartsNum = hearts.Count;
 
-
-
     }
 
 
     public void HealthDecrease()
     {
-        print("минус сердце");
         hearts[heartsNum - 1].SetActive(false);
         heartsNum--;
         if (heartsNum <= 0)

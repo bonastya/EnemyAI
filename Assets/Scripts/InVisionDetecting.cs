@@ -24,19 +24,18 @@ public class InVisionDetecting : MonoBehaviour
     {
         if(mode == GameController.GamePlayMode.PlayerHide)
         {
-            print("StartCoroutine(CheckInVisionCor())");
             StartCoroutine(CheckInVisionCor());
         }
             
         else if (mode == GameController.GamePlayMode.PlayerSeek)
         {
-            print("StopCoroutine(CheckInVisionCor())");
             StopCoroutine(CheckInVisionCor());
         }
             
 
     }
 
+    //проверка  что игрок находится в зоне видимости мобов (вариант нахождения всех мобов на будущее)
     IEnumerator CheckInVisionCor()
     {
         while (true)
@@ -54,23 +53,21 @@ public class InVisionDetecting : MonoBehaviour
                 NewMobsSeesPlayer.Add(mob);
             }
 
+            //запустить корутины у мобов которых не было на прошлом шаге
             foreach (GameObject mobVision in NewMobsSeesPlayer)
             {
                 if (!MobsSeesPlayer.Contains(mobVision))
                 {
-                    //print("моб: " + mob1);
-                    print("моб: StartCoroutine" + mobVision.ToString() + " StartCoroutine");
                     mobVision.GetComponent<VisionTrig>().mob.StartCoroutine("RayOnPlayerCor");
                     mobVision.GetComponent<VisionTrig>().mob.playerOnVisionTrig = true;
                 }
             }
 
+            //остановить корутины у мобов которых нет, но были на прошлом шаге
             foreach (GameObject mobVision in MobsSeesPlayer)
             {
                 if (!NewMobsSeesPlayer.Contains(mobVision))
                 {
-                    print("моб: StopCoroutine" + mobVision.ToString() + " StopCoroutine");
-
                     mobVision.GetComponent<VisionTrig>().mob.StopCoroutine("RayOnPlayerCor");
                     mobVision.GetComponent<VisionTrig>().mob.playerOnVisionTrig = false;
                 }

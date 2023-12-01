@@ -8,8 +8,7 @@ public class VisionTrig : MonoBehaviour
 
     private void Start()
     {
-        //mob = transform.root.gameObject.GetComponent<MobAI>();
-        
+        mob = transform.root.gameObject.GetComponent<MobAI>();
 
     }
 

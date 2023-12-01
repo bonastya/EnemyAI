@@ -29,14 +29,9 @@ public class GameController : MonoBehaviour
 
     void Start()
     {
-        
         ChangeMode(playMode);
     }
 
 
-    void Update()
-    {
-
-    }
 }
 

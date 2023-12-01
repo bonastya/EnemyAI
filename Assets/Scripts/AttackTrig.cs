@@ -10,7 +10,8 @@ public class AttackTrig : MonoBehaviour
     MobAI mob;
 
     public GameObject AttackPannel;
-    HealthControl healthControl;
+    private HealthControl healthControl;
+    private GameController gameController;
 
     Coroutine damageCor;
 
@@ -19,45 +20,49 @@ public class AttackTrig : MonoBehaviour
     {
         mob=transform.root.gameObject.GetComponent<MobAI>();
         healthControl = Object.FindObjectOfType<HealthControl>();
+
+        gameController = FindObjectOfType<GameController>();
     }
 
 
     private void OnTriggerEnter(Collider colider)
     {
-        if (colider.gameObject.tag == "Player")
+        if (gameController.playMode == GameController.GamePlayMode.PlayerHide)
         {
-            print("OnTriggerEnter сердце");
-            AttackPannel.SetActive(true);
+            if (colider.gameObject.tag == "Player")
+            {
+                AttackPannel.SetActive(true);
 
-            if (damageCor != null)
-                StopCoroutine(damageCor);
+                if (damageCor != null)
+                    StopCoroutine(damageCor);
 
-            seesPlayer = true;
-            damageCor =StartCoroutine(SeesCheckCor());
-  
+                seesPlayer = true;
+                damageCor = StartCoroutine(DamageCor());
+
+            }
         }
+       
 
     }
 
     private void OnTriggerExit(Collider colider)
     {
-
-        if (colider.gameObject.tag == "Player")
+        if (gameController.playMode == GameController.GamePlayMode.PlayerHide)
         {
-            seesPlayer = false;
-            AttackPannel.SetActive(false);
+            if (colider.gameObject.tag == "Player")
+            {
+                seesPlayer = false;
+                AttackPannel.SetActive(false);
+            }
         }
 
     }
 
-    IEnumerator SeesCheckCor()
+    IEnumerator DamageCor()
     {
-
-        print("SeesCheckCor сердце");
-
         while (seesPlayer)
         {
-            if (mob.movement_mode == MobAI.MovementMode.GoToPlayer)
+            if (mob.movementMode == MobAI.MovementMode.GoToPlayer)
             {
                 healthControl.HealthDecrease();
 

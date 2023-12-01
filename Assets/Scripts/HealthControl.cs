@@ -47,9 +47,9 @@ public class HealthControl : MonoBehaviour
     }
 
 
-    void HealthDecrease()
+    public void HealthDecrease()
     {
-
+        print("минус сердце");
         hearts[heartsNum - 1].SetActive(false);
         heartsNum--;
         if (heartsNum <= 0)
@@ -58,7 +58,7 @@ public class HealthControl : MonoBehaviour
         }
     }
 
-    void HealthIncrease()
+    public void HealthIncrease()
     {
         hearts[heartsNum].SetActive(true);
         heartsNum++;

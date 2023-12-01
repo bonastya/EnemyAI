@@ -9,43 +9,65 @@ public class AttackTrig : MonoBehaviour
 
     MobAI mob;
 
+    public GameObject AttackPannel;
+    HealthControl healthControl;
+
+    Coroutine damageCor;
+
+
     void Start()
     {
         mob=transform.root.gameObject.GetComponent<MobAI>();
+        healthControl = Object.FindObjectOfType<HealthControl>();
     }
 
 
-    private void OnTriggerEnter(Collider other)
+    private void OnTriggerEnter(Collider colider)
     {
-        StartCoroutine(SeesCheckCor());
-        seesPlayer = true;
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        StopCoroutine(SeesCheckCor());
-        seesPlayer = false;
-    }
-
-    IEnumerator SeesCheckCor()
-    {
-        yield return new WaitForSeconds(0.1f);
-
-        while (seesPlayer)
+        if (colider.gameObject.tag == "Player")
         {
-            yield return new WaitForSeconds(0.1f);
-            if (mob.movement_mode == MobAI.MovementMode.GoToPlayer)
-            {
-                seesPlayer = false;
-                //Time.timeScale = 0;
-                gameOverPanel.SetActive(true);
-            }
+            print("OnTriggerEnter сердце");
+            AttackPannel.SetActive(true);
+
+            if (damageCor != null)
+                StopCoroutine(damageCor);
+
+            seesPlayer = true;
+            damageCor =StartCoroutine(SeesCheckCor());
+  
         }
 
     }
 
+    private void OnTriggerExit(Collider colider)
+    {
 
+        if (colider.gameObject.tag == "Player")
+        {
+            seesPlayer = false;
+            AttackPannel.SetActive(false);
+        }
 
+    }
+
+    IEnumerator SeesCheckCor()
+    {
+
+        print("SeesCheckCor сердце");
+
+        while (seesPlayer)
+        {
+            if (mob.movement_mode == MobAI.MovementMode.GoToPlayer)
+            {
+                healthControl.HealthDecrease();
+
+                yield return new WaitForSeconds(3f);
+
+            }
+        }
+
+        damageCor = null;
+    }
 
 
 }

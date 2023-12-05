@@ -10,8 +10,8 @@ public class AttackTrig : MonoBehaviour
     MobAI mob;
 
     public GameObject AttackPannel;
-    private HealthControl healthControl;
-    private GameController gameController;
+    private PlayerControl player;
+    private PlayerControl gameController;
 
     Coroutine damageCor;
 
@@ -19,15 +19,15 @@ public class AttackTrig : MonoBehaviour
     void Start()
     {
         mob=transform.root.gameObject.GetComponent<MobAI>();
-        healthControl = Object.FindObjectOfType<HealthControl>();
+        player = Object.FindObjectOfType<PlayerControl>();
 
-        gameController = FindObjectOfType<GameController>();
+        gameController = FindObjectOfType<PlayerControl>();
     }
 
 
     private void OnTriggerEnter(Collider colider)
     {
-        if (gameController.playMode == GameController.GamePlayMode.PlayerHide)
+        if (gameController.playMode == PlayerControl.GamePlayMode.PlayerHide)
         {
             if (colider.gameObject.tag == "Player")
             {
@@ -47,7 +47,7 @@ public class AttackTrig : MonoBehaviour
 
     private void OnTriggerExit(Collider colider)
     {
-        if (gameController.playMode == GameController.GamePlayMode.PlayerHide)
+        if (gameController.playMode == PlayerControl.GamePlayMode.PlayerHide)
         {
             if (colider.gameObject.tag == "Player")
             {
@@ -64,7 +64,7 @@ public class AttackTrig : MonoBehaviour
         {
             if (mob.movementMode == MobAI.MovementMode.GoToPlayer)
             {
-                healthControl.HealthDecrease();
+                player.HealthDecrease();
 
                 yield return new WaitForSeconds(3f);
 

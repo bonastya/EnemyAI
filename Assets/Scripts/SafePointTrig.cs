@@ -25,7 +25,7 @@ public class SafePointTrig : MonoBehaviour
         }
     }
 
-
+   
     public bool ifPlayerColiding()
     {
         return playerIsHere;

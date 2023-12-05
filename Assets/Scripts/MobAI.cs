@@ -31,7 +31,7 @@ public class MobAI : MonoBehaviour
     [Header("Скорость моба при режиме скрывания")]
     public float hideSpeed=4f;
 
-    [HideInInspector] public GameController gameController;
+    [HideInInspector] public PlayerControl playerControl;
     [HideInInspector] public GameObject player;
     [HideInInspector] public bool playerOnVisionTrig;
 
@@ -44,7 +44,7 @@ public class MobAI : MonoBehaviour
 
     [HideInInspector] public WaypointTrig currentWaypointtrig;
     bool isInPlayerVision = false;
-    GameController.GamePlayMode mobPlayMode;
+    PlayerControl.GamePlayMode mobPlayMode;
 
 
     Collider[] obstaclesColliders = new Collider[10];
@@ -79,15 +79,15 @@ public class MobAI : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
         currentWaypointtrig = allWps[1].gameObject.GetComponent<WaypointTrig>();
 
-        gameController = FindObjectOfType<GameController>();
+        playerControl = FindObjectOfType<PlayerControl>();
 
-        print("gameController.playMode " + gameController.playMode);
-        if (gameController.playMode == GameController.GamePlayMode.PlayerHide)
+        print("playerControl.playMode " + playerControl.playMode);
+        if (playerControl.playMode == PlayerControl.GamePlayMode.PlayerHide)
         {
             print("GoToNextWP");
             StartGoToNextWPCor(0);
         }
-        else if (gameController.playMode == GameController.GamePlayMode.PlayerSeek)
+        else if (playerControl.playMode == PlayerControl.GamePlayMode.PlayerSeek)
         {
             CheckIfInVisionOfPlayer();
         }
@@ -100,22 +100,22 @@ public class MobAI : MonoBehaviour
     private void Update()
     {
         //проверка что моб находится в зоне видимости игрока
-        if (mobPlayMode == GameController.GamePlayMode.PlayerSeek)
+        if (mobPlayMode == PlayerControl.GamePlayMode.PlayerSeek)
         {
             CheckIfInVisionOfPlayer();
         }
     }
 
 
-    public void ChangePlayMode(GameController.GamePlayMode playMode)
+    public void ChangePlayMode(PlayerControl.GamePlayMode playMode)
     {
-        if (playMode == GameController.GamePlayMode.PlayerHide)
+        if (playMode == PlayerControl.GamePlayMode.PlayerHide)
         {
             mobPlayMode = playMode;
             agent.speed = seekSpeed;
 
         }
-        else if (playMode == GameController.GamePlayMode.PlayerSeek)
+        else if (playMode == PlayerControl.GamePlayMode.PlayerSeek)
         {
             mobPlayMode = playMode;
             agent.speed = hideSpeed;

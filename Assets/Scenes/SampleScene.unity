@@ -1262,7 +1262,7 @@ MonoBehaviour:
   targetPointVis: {fileID: 1392555997}
   seekSpeed: 1
   hideSpeed: 4
-  gameController: {fileID: 0}
+  playerControl: {fileID: 0}
   player: {fileID: 0}
   playerOnVisionTrig: 0
   movementMode: 0
@@ -1539,7 +1539,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &627244931
 Transform:
   m_ObjectHideFlags: 0
@@ -2241,7 +2241,6 @@ GameObject:
   - component: {fileID: 888775930}
   - component: {fileID: 888775933}
   - component: {fileID: 888775932}
-  - component: {fileID: 888775931}
   m_Layer: 5
   m_Name: HeartPanel
   m_TagString: Untagged
@@ -2269,22 +2268,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 61.646, y: 52.9456}
   m_Pivot: {x: 1, y: 1}
---- !u!114 &888775931
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 888775929}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 01c341924a0bf6a4fa7b44431fedcb39, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  StartHarts: 3
-  heartPanel: {fileID: 888775929}
-  heartSprite: {fileID: 21300000, guid: b07f74ddfec29264da24e9636f05ef5b, type: 3}
-  gameOverPanel: {fileID: 465993018}
 --- !u!114 &888775932
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3590,8 +3573,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 19dd30dd6b997fb4baf1f1c661d5d401, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerCamera: {fileID: 963194227}
   speed: 2
-  rotateSpeed: 1
+  lookSpeed: 2
+  lookXLimit: 45
+  StartHarts: 3
+  heartPanel: {fileID: 888775929}
+  heartSprite: {fileID: 21300000, guid: b07f74ddfec29264da24e9636f05ef5b, type: 3}
+  gameOverPanel: {fileID: 465993018}
+  mob_vision_mask:
+    serializedVersion: 2
+    m_Bits: 1024
+  playMode: 1
 --- !u!4 &1399883944
 Transform:
   m_ObjectHideFlags: 0
@@ -3651,7 +3644,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1399883939}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 926dc0b599c6aae4abd4e8d82acde690, type: 3}
   m_Name: 
@@ -3659,6 +3652,8 @@ MonoBehaviour:
   playerCamera: {fileID: 963194227}
   lookSpeed: 2
   lookXLimit: 45
+  characterController: {fileID: 0}
+  rotationX: 0
 --- !u!114 &1399883948
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3672,9 +3667,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player_camera: {fileID: 963194228}
+  isInVision: 0
   mob_vision_mask:
-    serializedVersion: 2
     m_Bits: 1024
+  MobsSeesPlayer: []
+  NewMobsSeesPlayer: []
 --- !u!1001 &1449965529
 PrefabInstance:
   m_ObjectHideFlags: 0

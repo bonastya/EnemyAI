@@ -171,8 +171,8 @@ public class PlayerControl : MonoBehaviour
             {
                 if (!MobsSeesPlayer.Contains(mobVision))
                 {
-                    mobVision.GetComponent<VisionTrig>().mob.StartCoroutine("RayOnPlayerCor");
-                    mobVision.GetComponent<VisionTrig>().mob.playerOnVisionTrig = true;
+                    mobVision.GetComponentInParent<MobAI>().StartCoroutine("RayOnPlayerCor");
+                    mobVision.GetComponentInParent<MobAI>().playerOnVisionTrig = true;
                 }
             }
 
@@ -181,8 +181,8 @@ public class PlayerControl : MonoBehaviour
             {
                 if (!NewMobsSeesPlayer.Contains(mobVision))
                 {
-                    mobVision.GetComponent<VisionTrig>().mob.StopCoroutine("RayOnPlayerCor");
-                    mobVision.GetComponent<VisionTrig>().mob.playerOnVisionTrig = false;
+                    mobVision.GetComponentInParent<MobAI>().StopCoroutine("RayOnPlayerCor");
+                    mobVision.GetComponentInParent<MobAI>().playerOnVisionTrig = false;
                 }
             }
 

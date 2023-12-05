@@ -42,7 +42,7 @@ public class MobAI : MonoBehaviour
     NavMeshAgent agent;
     Animator mobAnimator;
 
-    [HideInInspector] public WaypointTrig currentWaypointtrig;
+    [HideInInspector] public GameObject currentWaypointtrig;
     bool isInPlayerVision = false;
     PlayerControl.GamePlayMode mobPlayMode;
 
@@ -69,6 +69,19 @@ public class MobAI : MonoBehaviour
         WaitInCover
     }
 
+    [Header("ƒлительность паузы на WayPoint")]
+    public float moveDelayMin = 3f;
+    public float moveDelayMax = 5f;
+
+
+    private bool mobIsInSafePoint = false;
+
+    [Header("Ёкран атаки")]
+    public GameObject AttackPannel;
+
+    bool seesPlayer;
+    Coroutine damageCor;
+
 
     void Start()
     {
@@ -77,7 +90,7 @@ public class MobAI : MonoBehaviour
         playerCamera = GameObject.FindWithTag("MainCamera").transform;
         mobAnimator = GetComponent<Animator>();
         agent = GetComponent<NavMeshAgent>();
-        currentWaypointtrig = allWps[1].gameObject.GetComponent<WaypointTrig>();
+        currentWaypointtrig = allWps[1].gameObject;
 
         playerControl = FindObjectOfType<PlayerControl>();
 
@@ -380,7 +393,7 @@ public class MobAI : MonoBehaviour
                             SafePointCor = StartCoroutine(IfSafePointStillSafe(safePoint.position));
 
                             //если точка слишком близко к мобу
-                            if (safePoint.GetComponent<SafePointTrig>().ifPlayerColiding())
+                            if (mobIsInSafePoint)
                             {
                                 StartCoroutine(WaitWhenGoToNearPoint());
                             }
@@ -444,6 +457,94 @@ public class MobAI : MonoBehaviour
         agent.isStopped = false;
 
     }
+
+    #region waypoint movement, safe point logic, attack
+
+    private void OnTriggerEnter(Collider colider)
+    {
+        if (colider.gameObject.tag == "WayPoint")
+        {
+            if (target == colider.gameObject.transform)
+            {
+                
+                Stop();
+                currentWaypointtrig = colider.gameObject;
+                StartGoToNextWPCor(Random.Range(moveDelayMin, moveDelayMax));
+            }
+        }
+
+
+        if (colider.gameObject.tag == "SafePoint")
+        {
+            if (target == colider.gameObject.transform)
+            {
+                WaitInCover();
+            }
+            mobIsInSafePoint = true;
+        }
+
+
+        if (playerControl.playMode == PlayerControl.GamePlayMode.PlayerHide)
+        {
+            if (colider.gameObject.tag == "PlayerBody")
+            {
+                AttackPannel.SetActive(true);
+
+                if (damageCor != null)
+                    StopCoroutine(damageCor);
+
+                seesPlayer = true;
+                damageCor = StartCoroutine(DamageCor());
+
+            }
+        }
+
+
+    }
+
+
+    public Collider col;
+
+    private void OnTriggerExit(Collider colider)
+    {
+        if (colider.gameObject.tag == "SafePoint")
+        {
+            mobIsInSafePoint = false;
+        }
+
+        if (playerControl.playMode == PlayerControl.GamePlayMode.PlayerHide)
+        {
+            if (colider.gameObject.tag == "PlayerBody")
+            {
+                seesPlayer = false;
+                AttackPannel.SetActive(false);
+            }
+        }
+
+
+       
+
+    }
+
+    IEnumerator DamageCor()
+    {
+        while (seesPlayer)
+        {
+            if (movementMode == MobAI.MovementMode.GoToPlayer)
+            {
+                playerControl.HealthDecrease();
+
+                yield return new WaitForSeconds(3f);
+
+            }
+        }
+
+        damageCor = null;
+    }
+
+
+    #endregion
+
 
 }
 

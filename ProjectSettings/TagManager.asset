@@ -7,6 +7,9 @@ TagManager:
   - Enemy
   - Mob
   - MobVision
+  - WayPoint
+  - SafePoint
+  - PlayerBody
   layers:
   - Default
   - TransparentFX

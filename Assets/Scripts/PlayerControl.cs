@@ -9,10 +9,10 @@ public class PlayerControl : MonoBehaviour
     [Header ("Movement")]
     public Camera playerCamera;
 
-    //скорость игрока
+    //player's speed
     public float speed = 2.0F;
 
-    //скорость поворота и лимит камеры
+    //rotation speed and camera limit
     public float lookSpeed = 2f;
     public float lookXLimit = 45f;
 
@@ -20,30 +20,26 @@ public class PlayerControl : MonoBehaviour
 
 
     [Header("Health Control")]
-    //начальное кол-во жизней
+    //start number of lives
     public int StartHarts;
 
-    //панель и спрайт жизней
+    //panel and sprite of lives
     public GameObject heartPanel;
     public Sprite heartSprite;
 
-    //текущее кол-во жизней
+    //current number of lives
     private int heartsNum;
 
     private List<GameObject> hearts = new List<GameObject>();
     private float offset = 50;
 
-    //панель конца игры
+    //End of game panel
     public GameObject gameOverPanel;
 
 
-
-
-    [Header("In Vision Detecting")]
-    //public Transform player_camera;
     bool isInVision = false;
 
-    [Header("Слой вижена моба (конуса)")]
+    [Header("layer of mob vision")]
     public LayerMask mob_vision_mask;
 
     private List<GameObject> MobsSeesPlayer;
@@ -69,7 +65,7 @@ public class PlayerControl : MonoBehaviour
         Cursor.visible = false;
 
 
-        //спавн сердечек по количеству StartHarts
+        //spawn hearts by the number of StartHarts
         for (int i = 0; i < StartHarts; i++)
         {
             GameObject imgObject = new GameObject("Heart");
@@ -99,7 +95,7 @@ public class PlayerControl : MonoBehaviour
 
     void Update()
     {
-        //движение игрока
+        //player movement
         CharacterController controller = GetComponent<CharacterController>();
 
         Vector3 forward = transform.TransformDirection(Vector3.forward);
@@ -109,7 +105,7 @@ public class PlayerControl : MonoBehaviour
         float curSpeedHor = speed * Input.GetAxis("Horizontal");
         controller.SimpleMove(forward * curSpeed+ right * curSpeedHor);
 
-        //поворот камеры
+        //camera rotation
         rotationX += -Input.GetAxis("Mouse Y") * lookSpeed;
         rotationX = Mathf.Clamp(rotationX, -lookXLimit, lookXLimit);
         playerCamera.transform.localRotation = Quaternion.Euler(rotationX, 0, 0);
@@ -148,7 +144,7 @@ public class PlayerControl : MonoBehaviour
 
 
 
-    //проверка  что игрок находится в зоне видимости мобов (вариант нахождения всех мобов на будущее)
+    //checking that the player is in the vision zone of mobs (finding all mobs for the future)
     IEnumerator CheckInVisionCor()
     {
         while (true)
@@ -166,7 +162,7 @@ public class PlayerControl : MonoBehaviour
                 NewMobsSeesPlayer.Add(mob);
             }
 
-            //запустить корутины у мобов которых не было на прошлом шаге
+            //start coroutines for mobs that did not exist in the last step
             foreach (GameObject mobVision in NewMobsSeesPlayer)
             {
                 if (!MobsSeesPlayer.Contains(mobVision))
@@ -176,7 +172,7 @@ public class PlayerControl : MonoBehaviour
                 }
             }
 
-            //остановить корутины у мобов которых нет, но были на прошлом шаге
+            //stop the coroutines of mobs that do not exist, but were at the last step
             foreach (GameObject mobVision in MobsSeesPlayer)
             {
                 if (!NewMobsSeesPlayer.Contains(mobVision))

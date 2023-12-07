@@ -1590,7 +1590,7 @@ GameObject:
   - component: {fileID: 695588566}
   - component: {fileID: 695588567}
   m_Layer: 6
-  m_Name: Capsule
+  m_Name: PlayerBody
   m_TagString: PlayerBody
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1871,7 +1871,6 @@ GameObject:
   - component: {fileID: 774253587}
   - component: {fileID: 774253586}
   - component: {fileID: 774253585}
-  - component: {fileID: 774253589}
   m_Layer: 0
   m_Name: SafePoint
   m_TagString: SafePoint
@@ -1957,18 +1956,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 9
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &774253589
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 774253584}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2975e3b907bae314daeacef10b9565da, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &824141029 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8667056234906795570, guid: b4d4a657ba67ffd4bbb5553d94e0bf4a, type: 3}
@@ -3475,7 +3462,7 @@ MonoBehaviour:
   mob_vision_mask:
     serializedVersion: 2
     m_Bits: 1024
-  playMode: 1
+  playMode: 0
 --- !u!4 &1399883944
 Transform:
   m_ObjectHideFlags: 0
@@ -3812,7 +3799,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1529307034}
   - component: {fileID: 1529307037}
-  - component: {fileID: 1529307035}
   - component: {fileID: 1529307038}
   - component: {fileID: 1529307039}
   m_Layer: 11
@@ -3837,18 +3823,6 @@ Transform:
   m_Father: {fileID: 1399883944}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: -90, z: 0}
---- !u!114 &1529307035
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1529307033}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 778cff5b38ffe4745a8fbb19e5029b38, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!64 &1529307037
 MeshCollider:
   m_ObjectHideFlags: 0

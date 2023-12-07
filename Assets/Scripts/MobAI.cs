@@ -7,28 +7,28 @@ using UnityEngine.AI;
 public class MobAI : MonoBehaviour
 {
 
-    [Header("Точки поиска")]
+    [Header("Search way points")]
     public Transform[] allWps;
 
-    [Header("Точка откуда пускается луч во время препятствий (на голове моба)")]
+    [Header("The point for Linecast for obstacles (on the head of the mob)")]
     public Transform visionPoint;
 
-    [Header("Слои для определения видимости (что преграждает)")]
+    [Header("Layers for detect visibility (what is obstacle)")]
     public LayerMask obstacleLayerMask;
 
-    [Header("Слой вижена игрока")]
+    [Header("Player's vision layer")]
     public LayerMask playerVisionMask;
 
-    [Header("Метка где последний раз видел игрока")]
+    [Header("Point where the player was last seen")]
     public Transform playerLastPointTrig;
 
-    [Header("Метка куда идёт моб (визуализация)")]
+    [Header("Point where the mob goes (visualization)")]
     public Transform targetPointVis;
 
-    [Header("Скорость моба при режиме поиска")]
+    [Header("The speed of the mob in search mode")]
     public float seekSpeed=1f;
 
-    [Header("Скорость моба при режиме скрывания")]
+    [Header("The speed of the mob in hiding mode")]
     public float hideSpeed=4f;
 
     [HideInInspector] public PlayerControl playerControl;
@@ -49,10 +49,10 @@ public class MobAI : MonoBehaviour
 
     Collider[] obstaclesColliders = new Collider[10];
 
-    [Header("Сфера в которой нужно искать укрытия")]
+    [Header("Sphere in which find obstacles to hide")]
     public SphereCollider obstacleSearchRadius;
 
-    [Header("Точка найденного укрытия")]
+    [Header("The point of the found shelter")]
     public Transform safePoint;
 
     private Coroutine SafePointCor;
@@ -69,14 +69,14 @@ public class MobAI : MonoBehaviour
         WaitInCover
     }
 
-    [Header("Длительность паузы на WayPoint")]
+    [Header("Duration of the pause on Waypoint")]
     public float moveDelayMin = 3f;
     public float moveDelayMax = 5f;
 
 
     private bool mobIsInSafePoint = false;
 
-    [Header("Экран атаки")]
+    [Header("Attack Screen")]
     public GameObject AttackPannel;
 
     bool seesPlayer;
@@ -112,7 +112,7 @@ public class MobAI : MonoBehaviour
 
     private void Update()
     {
-        //проверка что моб находится в зоне видимости игрока
+        //checking that mob is in player's vision zone
         if (mobPlayMode == PlayerControl.GamePlayMode.PlayerSeek)
         {
             CheckIfInVisionOfPlayer();
@@ -137,8 +137,8 @@ public class MobAI : MonoBehaviour
         }
     }
 
-    //используется для обоих режимов игры
-    //target указывает на актуальную цель для Navagent
+    //Used for both game modes
+    //target indicates the current target for Navagent
     IEnumerator SetDestinationCor()
     {
         while (true)
@@ -153,7 +153,7 @@ public class MobAI : MonoBehaviour
 
     #region player hide mode
 
-    //проверка есть ли препятствия между игроком и мобом
+    //checking for obstacles between the player and the mob
     IEnumerator RayOnPlayerCor()
     {
         RaycastHit str;
@@ -161,11 +161,11 @@ public class MobAI : MonoBehaviour
         while (true)
         {
             yield return new WaitForSeconds(0.1f);
-            //если в области видимости моба
+            //if in the vision zone of the mob
             if (playerOnVisionTrig)
             {
                 Debug.DrawLine(visionPoint.position, playerCamera.position, Color.red);
-                //если нет препятствий
+                //if there are no obstacles
                 if (!Physics.Linecast(visionPoint.position, playerCamera.position, out str, obstacleLayerMask))
                 {
                     if (movementMode != MovementMode.GoToPlayer)
@@ -190,7 +190,7 @@ public class MobAI : MonoBehaviour
         target = player.transform;
         movementMode = MovementMode.GoToPlayer;
         Move();
-        print("Моб идёт к игроку");
+        print("Mob goes to the player");
 
     }
 
@@ -200,40 +200,37 @@ public class MobAI : MonoBehaviour
         target = playerLastPointTrig;
         movementMode = MovementMode.GoToLastPoint;
         Move();
-        print("Моб идёт к последней точке где видел игрока");
+        print("Mob goes to the last point where it saw the player");
 
 
     }
 
-    //запускается при достижении WayPoint
+    //starts when in WayPoint
     public void StartGoToNextWPCor(float delay)
     {
         WayPointCor = StartCoroutine(GoToNextWPCor(delay));
     }
 
-    //задержка на WayPoint
+    //delay at WayPoint
     IEnumerator GoToNextWPCor(float delay)
     {
         yield return new WaitForSeconds(delay);
-        GoToNextWP();
-    }
-    public void GoToNextWP()
-    {
+        
         Transform newWP = currentWaypointtrig.transform;
-        //выбрать случайную точку кроме текущей
+        //select a random point but not the current one
         while (newWP == currentWaypointtrig.transform)
             newWP = allWps[Random.Range(0, allWps.Length)].transform;
 
-        print("Моб идёт к  " + newWP);
+        print("Mob goes to  " + newWP);
 
         target = newWP;
         movementMode = MovementMode.CheckWayPoints;
         Move();
         WayPointCor = null;
-
     }
 
-    //когда моб дошёл до WayPoint
+
+    //When mob came to WayPoint
     public void Stop()
     {
         movementMode = MovementMode.CheckWayPoints;
@@ -250,11 +247,11 @@ public class MobAI : MonoBehaviour
 
     private void CheckIfInVisionOfPlayer()
     {
-        //пересекается ли точка с зоной видимости игрока
+        //if point is in player's vision zone
         Collider[] hitColliders = Physics.OverlapSphere(visionPoint.position, 0f, playerVisionMask);
         if (hitColliders.Length > 0)
         {
-            //проверка что моб не был в триггере до этого
+            //checking that mob was not in the trigger before
             if (!isInPlayerVision)
             {
                 isInPlayerVision = true;
@@ -274,7 +271,7 @@ public class MobAI : MonoBehaviour
         }
     }
 
-    //проверка что на линии видимости с игроком (нет препятствий)
+    //Checking that there are no obstacles in the line of sight with the player
     IEnumerator IsHideFromPlayerRayCor()
     {
         RaycastHit str;
@@ -299,7 +296,7 @@ public class MobAI : MonoBehaviour
     }
 
 
-    //по начальной позиции и объекту возвращает позицию удара о коллайдер объекта с обратной стороны
+    //by the start position and gameObject returns the position of icollision with the collider from the reverse side
 
     public RaycastHit HitBackSidePosition(Vector3 startPosition, GameObject coliderObject)
     {
@@ -334,14 +331,14 @@ public class MobAI : MonoBehaviour
 
             }
         }
-        print("Не удалось найти точку за объектом" + coliderObject);
+        print("Couldn't find the point behind the object" + coliderObject);
         ifFoundCollider = false;
         return new RaycastHit();
 
     }
 
 
-    //поиск и проверка точки где можно спрятаться
+    //Finding and checking the point where can hide
     public void HideFromPlayer()
     {
         Vector3 playerCameraPosition = playerCamera.position;
@@ -349,39 +346,39 @@ public class MobAI : MonoBehaviour
         if (SafePointCor != null)
             StopCoroutine(SafePointCor);
 
-        //коллайдеры в радиусе поиска моба
+        //colliders in search radius of the mob
         int colliders = Physics.OverlapSphereNonAlloc(visionPoint.position, obstacleSearchRadius.radius, obstaclesColliders, obstacleLayerMask);
 
         for (int i = 0; i < colliders; i++)
         {
-            //позиция за коллайдером
+            //position behind the collider
             RaycastHit raycastHit = HitBackSidePosition(playerCameraPosition, obstaclesColliders[i].gameObject);
 
-            //расчёт направления от игрока к предполагаемой безопасной позиции
+            //direction from the player to the assumed safe position
             Vector3 direction = obstaclesColliders[i].gameObject.transform.position - playerCameraPosition;
 
             if (ifFoundCollider)
             {
                 NavMeshHit navPoint;
-                //ближайшая позиция NavMesh 
+                //the nearest NavMesh position 
                 if (NavMesh.SamplePosition(raycastHit.transform.position, out navPoint, 10f, agent.areaMask))
                 {
-                    //ближайшая грань navMesh
+                    //the nearest edge of navMesh
                     if (!NavMesh.FindClosestEdge(navPoint.position, out navPoint, agent.areaMask))
                     {
                         print("can not FindClosestEdge");
                     }
 
-                    //отступ от края NavMesh перпендикулярно грани
+                    //perpendicular offset from the NavMesh edge
                     Vector3 normalDirection = navPoint.normal;
                     NavMeshHit offsetNavPoint;
                     Vector3 position1 = navPoint.position + normalDirection * 0.2f;
 
 
-                    //ближайшая позиция NavMesh к новой точке
+                    //the closest NavMesh position to the new point
                     if (NavMesh.SamplePosition(position1, out offsetNavPoint, 10f, agent.areaMask))
                     {
-                        //проверка что новая точка не находится на линии прямой видимости с игроком
+                        //checking that new point is not in line of sight with player
                         if (Physics.Linecast(playerCameraPosition, new Vector3(offsetNavPoint.position.x, playerCameraPosition.y, offsetNavPoint.position.z), obstacleLayerMask))
                         {
                             safePoint.position = offsetNavPoint.position;
@@ -389,10 +386,10 @@ public class MobAI : MonoBehaviour
 
                             movementMode = MovementMode.HideFromPlayer;
                             Move();
-                            print("Моб идёт к укрытию" + raycastHit.transform.gameObject);
+                            print("Mob goes to the obstacle " + raycastHit.transform.gameObject);
                             SafePointCor = StartCoroutine(IfSafePointStillSafe(safePoint.position));
 
-                            //если точка слишком близко к мобу
+                            //if the point is too close to the mob
                             if (mobIsInSafePoint)
                             {
                                 StartCoroutine(WaitWhenGoToNearPoint());
@@ -412,7 +409,7 @@ public class MobAI : MonoBehaviour
 
 
 
-    //проверка что выбранная точка для укрытия моба всё ещё не видна игроку
+    //checking that the selected point for hiding the mob is still not visible to the player
     IEnumerator IfSafePointStillSafe(Vector3 safePosition)
     {
         while (Physics.Linecast(playerCamera.position, new Vector3(safePosition.x, playerCamera.position.y, safePosition.z), obstacleLayerMask))
@@ -425,7 +422,7 @@ public class MobAI : MonoBehaviour
 
     }
 
-    //задержка если точка для прятания появилась слишком близко к мобу
+    //delay if the hiding point appears too close to the mob
     IEnumerator WaitWhenGoToNearPoint()
     {
         yield return new WaitForSeconds(0.3f);
@@ -433,7 +430,7 @@ public class MobAI : MonoBehaviour
     }
 
 
-    //когда моб достиг скрытной точки
+    //When the mob came to the safe point
     public void WaitInCover()
     {
         movementMode = MovementMode.WaitInCover;
@@ -449,7 +446,7 @@ public class MobAI : MonoBehaviour
 
 
 
-    //анимация движения
+    //walk animation
     public void Move()
     {
 
@@ -521,11 +518,9 @@ public class MobAI : MonoBehaviour
             }
         }
 
-
-       
-
     }
 
+    //Player takes 1 damage in 3 seconds
     IEnumerator DamageCor()
     {
         while (seesPlayer)

@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
+using UnityEngine.AI;
 
 [RequireComponent(typeof(CharacterController))]
 public class PlayerControl : MonoBehaviour
@@ -50,6 +51,8 @@ public class PlayerControl : MonoBehaviour
 
     [Header("Game mode")]
     public GamePlayMode playMode;
+
+    private NavMeshObstacle playerNavMeshObstacle;
     public enum GamePlayMode
     {
         PlayerHide,
@@ -61,6 +64,8 @@ public class PlayerControl : MonoBehaviour
     private void Start()
     {
         rb = gameObject.GetComponent<Rigidbody>();
+        playerNavMeshObstacle = gameObject.GetComponent<NavMeshObstacle>();
+
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
@@ -133,11 +138,13 @@ public class PlayerControl : MonoBehaviour
         if (mode == GamePlayMode.PlayerHide)
         {
             StartCoroutine(CheckInVisionCor());
+            playerNavMeshObstacle.enabled = false;
         }
 
         else if (mode == GamePlayMode.PlayerSeek)
         {
             StopCoroutine(CheckInVisionCor());
+            playerNavMeshObstacle.enabled = true;
         }
 
     }

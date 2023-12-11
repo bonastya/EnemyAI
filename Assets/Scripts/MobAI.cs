@@ -47,7 +47,7 @@ public class MobAI : MonoBehaviour
     PlayerControl.GamePlayMode mobPlayMode;
 
 
-    Collider[] obstaclesColliders = new Collider[10];
+    Collider[] obstaclesColliders = new Collider[50];
 
     [Header("Sphere in which find obstacles to hide")]
     public SphereCollider obstacleSearchRadius;
@@ -196,11 +196,26 @@ public class MobAI : MonoBehaviour
 
     public void GoToPlayerLastPoint()
     {
+
+
+
         playerLastPointTrig.position = player.transform.position;
-        target = playerLastPointTrig;
-        movementMode = MovementMode.GoToLastPoint;
-        Move();
-        print("Mob goes to the last point where it saw the player");
+
+        NavMeshHit navPoint;
+        //the nearest NavMesh position 
+        if (NavMesh.SamplePosition(playerLastPointTrig.position, out navPoint, 100f, agent.areaMask))
+        {
+            playerLastPointTrig.position = navPoint.position;
+            target = playerLastPointTrig;
+            movementMode = MovementMode.GoToLastPoint;
+            Move();
+            print("Mob goes to the last point where it saw the player");
+        }
+        else
+        {
+            print("can not find nearest NavMesh position");
+            StartGoToNextWPCor(Random.Range(moveDelayMin, moveDelayMax));
+        }
 
 
     }
